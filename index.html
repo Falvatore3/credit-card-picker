@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>选信用卡 · 滑动推荐</title>
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --card-radius: 24px;
+      --green: #22c55e;
+      --red: #ef4444;
+      --gold: #f59e0b;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ─── Header ─── */
+    header {
+      width: 100%;
+      padding: 20px 24px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 480px;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    .progress-text { font-size: 0.8rem; color: var(--muted); }
+
+    /* ─── Progress Bar ─── */
+    .progress-wrap {
+      width: 100%;
+      max-width: 480px;
+      padding: 12px 24px 0;
+    }
+    .progress-bar {
+      height: 4px;
+      background: #2d3148;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* ─── Stage: Swipe ─── */
+    #stage-swipe {
+      width: 100%;
+      max-width: 480px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 24px 30px;
+    }
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      gap: 20px;
+    }
+    .hint span { display: flex; align-items: center; gap: 4px; }
+
+    /* ─── Card Stack ─── */
+    .card-stack {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      user-select: none;
+    }
+    .card-stack .bg-card {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%) scale(0.95) translateY(12px);
+      width: calc(100% - 40px);
+      height: 340px;
+      border-radius: var(--card-radius);
+      opacity: 0.4;
+    }
+    .card-stack .bg-card2 {
+      transform: translateX(-50%) scale(0.9) translateY(24px);
+      opacity: 0.2;
+    }
+
+    /* ─── The Swipeable Card ─── */
+    .swipe-card {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 0px);
+      height: 340px;
+      border-radius: var(--card-radius);
+      cursor: grab;
+      transition: box-shadow 0.2s;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+      touch-action: none;
+    }
+    .swipe-card:active { cursor: grabbing; }
+    .swipe-card.animate-left {
+      animation: flyLeft 0.38s ease forwards;
+    }
+    .swipe-card.animate-right {
+      animation: flyRight 0.38s ease forwards;
+    }
+    @keyframes flyLeft {
+      to { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
+    }
+    @keyframes flyRight {
+      to { transform: translateX(150%) rotate(20deg); opacity: 0; }
+    }
+
+    /* ─── Card Inner ─── */
+    .card-inner {
+      width: 100%; height: 100%;
+      padding: 28px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .card-bank { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; opacity: 0.85; }
+    .card-name { font-size: 1.35rem; font-weight: 800; margin-top: 4px; line-height: 1.2; }
+    .card-tagline { font-size: 0.8rem; opacity: 0.75; margin-top: 6px; }
+    .chip { width: 40px; height: 30px; background: rgba(255,255,255,0.25); border-radius: 6px; margin-top: 16px; }
+    .card-number { font-size: 0.95rem; letter-spacing: 0.2em; opacity: 0.7; margin-top: 8px; }
+
+    .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag {
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.18);
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+    .card-annual { font-size: 0.72rem; text-align: right; opacity: 0.75; }
+    .card-annual strong { display: block; font-size: 1.1rem; font-weight: 800; }
+
+    /* ─── Swipe Overlays ─── */
+    .like-overlay, .nope-overlay {
+      position: absolute;
+      top: 28px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      padding: 6px 16px;
+      border-radius: 10px;
+      border: 3px solid;
+      opacity: 0;
+      transition: opacity 0.1s;
+      pointer-events: none;
+      letter-spacing: 0.05em;
+    }
+    .like-overlay { left: 24px; color: var(--green); border-color: var(--green); transform: rotate(-12deg); }
+    .nope-overlay { right: 24px; color: var(--red); border-color: var(--red); transform: rotate(12deg); }
+
+    /* ─── Action Buttons ─── */
+    .action-btns {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 28px;
+    }
+    .btn-action {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.6rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    }
+    .btn-action:hover { transform: scale(1.1); }
+    .btn-action:active { transform: scale(0.95); }
+    .btn-nope  { background: #2a1f2a; color: var(--red); }
+    .btn-like  { background: #1a2a1f; color: var(--green); }
+    .btn-undo  { background: #1e2030; color: var(--gold); width: 50px; height: 50px; font-size: 1.2rem; }
+
+    /* ─── Stage: Result ─── */
+    #stage-result {
+      display: none;
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 24px 40px;
+      flex-direction: column;
+      gap: 16px;
+    }
+    #stage-result h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
+    #stage-result .sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+    .recommend-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--gold), #f97316);
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .result-card {
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    .result-card .rc-top {
+      padding: 20px 22px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .rc-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.15);
+      font-size: 1.6rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .rc-info { flex: 1; }
+    .rc-bank { font-size: 0.7rem; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 0.06em; }
+    .rc-name { font-size: 1.05rem; font-weight: 800; }
+    .match-score {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .result-card .rc-body {
+      padding: 14px 22px 20px;
+      background: rgba(0,0,0,0.2);
+    }
+    .rc-reason { font-size: 0.82rem; color: rgba(255,255,255,0.85); line-height: 1.7; margin-bottom: 12px; }
+    .rc-highlights { display: flex; gap: 8px; flex-wrap: wrap; }
+    .highlight {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    /* ─── Empty/Liked ─── */
+    .all-done {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .all-done .emoji { font-size: 3rem; }
+    .all-done p { color: var(--muted); margin-top: 12px; font-size: 0.9rem; }
+
+    .restart-btn {
+      margin-top: 24px;
+      padding: 14px 36px;
+      border-radius: 99px;
+      border: none;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(99,102,241,0.4);
+      transition: transform 0.15s;
+    }
+    .restart-btn:hover { transform: scale(1.04); }
+
+    .liked-section { margin-top: 8px; }
+    .liked-section h3 { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+    .liked-list { display: flex; flex-direction: column; gap: 10px; }
+    .liked-item {
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .liked-item .li-icon { font-size: 1.4rem; }
+    .liked-item .li-name { font-weight: 700; font-size: 0.9rem; }
+    .liked-item .li-bank { font-size: 0.72rem; color: rgba(255,255,255,0.65); }
+
+    /* ─── No Likes ─── */
+    .no-likes { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>💳 选信用卡</h1>
+  <span class="progress-text" id="progress-text">0 / 12</span>
+</header>
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<!-- ══════════ SWIPE STAGE ══════════ -->
+<div id="stage-swipe">
+  <div class="hint">
+    <span>👈 左滑跳过</span>
+    <span>👉 右滑喜欢</span>
+  </div>
+
+  <div class="card-stack" id="card-stack">
+    <!-- JS generated -->
+  </div>
+
+  <div class="action-btns">
+    <button class="btn-action btn-nope"  onclick="swipeCard('left')">✕</button>
+    <button class="btn-action btn-undo"  onclick="undoSwipe()">↩</button>
+    <button class="btn-action btn-like"  onclick="swipeCard('right')">♥</button>
+  </div>
+</div>
+
+<!-- ══════════ RESULT STAGE ══════════ -->
+<div id="stage-result">
+  <div id="result-content"></div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   DATA: 12 Credit Cards
+───────────────────────────────────────── */
+const CARDS = [
+  {
+    id: 'cmblife',
+    bank: '招商银行',
+    name: 'YOUNG卡 (青春版)',
+    tagline: '年轻人的第一张信用卡',
+    tags: ['免年费', '积分', '影院优惠'],
+    annual: '永久免年费',
+    annualFee: 0,
+    gradient: ['#667eea', '#764ba2'],
+    icon: '🎬',
+    features: ['看电影享折扣', '积分可换礼品', '零门槛办理', '网红联名款'],
+    profile: ['student', 'young', 'entertainment'],
+    score_keys: ['entertainment', 'free_annual', 'lifestyle'],
+  },
+  {
+    id: 'bocshopping',
+    bank: '中国银行',
+    name: '长城环球通信用卡',
+    tagline: '购物返现首选',
+    tags: ['购物返现', '境外消费', '双币种'],
+    annual: '刷满减免',
+    annualFee: 180,
+    gradient: ['#f093fb', '#f5576c'],
+    icon: '🛍️',
+    features: ['海外购物1%返现', '双币结算', '机场贵宾厅', '全球商家优惠'],
+    profile: ['shopping', 'travel', 'overseas'],
+    score_keys: ['shopping', 'overseas', 'travel'],
+  },
+  {
+    id: 'icbcuniverse',
+    bank: '工商银行',
+    name: '宇宙星座信用卡',
+    tagline: '高颜值 · 十二星座',
+    tags: ['颜值卡', '积分', '娱乐'],
+    annual: '200元/年',
+    annualFee: 200,
+    gradient: ['#4facfe', '#00f2fe'],
+    icon: '⭐',
+    features: ['星座主题设计', '积分不过期', '网红打卡赠礼', '积分兑换里程'],
+    profile: ['young', 'lifestyle', 'entertainment'],
+    score_keys: ['lifestyle', 'entertainment', 'points'],
+  },
+  {
+    id: 'cmbdining',
+    bank: '招商银行',
+    name: '美食GO联名卡',
+    tagline: '吃货必备，餐饮大额返现',
+    tags: ['餐饮返现', '外卖优惠', '美食'],
+    annual: '刷6次免年费',
+    annualFee: 200,
+    gradient: ['#fa709a', '#fee140'],
+    icon: '🍜',
+    features: ['餐饮消费3%返现', '美团/饿了么优惠', '米其林餐厅折扣', '每月餐饮券'],
+    profile: ['dining', 'lifestyle', 'young'],
+    score_keys: ['dining', 'lifestyle', 'cashback'],
+  },
+  {
+    id: 'pingantravel',
+    bank: '平安银行',
+    name: '平安旅行白金卡',
+    tagline: '商旅达人专属权益',
+    tags: ['机场贵宾', '高铁贵宾', '里程'],
+    annual: '1200元/年',
+    annualFee: 1200,
+    gradient: ['#0f2027', '#203a43', '#2c5364'],
+    icon: '✈️',
+    features: ['无限次机场贵宾厅', '高铁贵宾候车室', '里程1:1兑换', '全球酒店升级'],
+    profile: ['travel', 'business', 'premium'],
+    score_keys: ['travel', 'airport', 'points'],
+  },
+  {
+    id: 'cmcgas',
+    bank: '中信银行',
+    name: '中信车主信用卡',
+    tagline: '加油返现，驾车必备',
+    tags: ['加油返现', '停车优惠', '汽车'],
+    annual: '刷6次免年费',
+    annualFee: 200,
+    gradient: ['#f7971e', '#ffd200'],
+    icon: '🚗',
+    features: ['加油返现3%', '停车场折扣', 'ETC绑定优惠', '汽车保养折扣'],
+    profile: ['car', 'commute', 'practical'],
+    score_keys: ['car', 'cashback', 'practical'],
+  },
+  {
+    id: 'spdbhealth',
+    bank: '浦发银行',
+    name: '健康生活信用卡',
+    tagline: '运动健康，绿色生活',
+    tags: ['健身返现', '医疗优惠', '健康'],
+    annual: '刷6次免年费',
+    annualFee: 200,
+    gradient: ['#56ab2f', '#a8e063'],
+    icon: '💪',
+    features: ['健身房消费返现2%', '体检优惠套餐', '运动APP会员', '医疗绿色通道'],
+    profile: ['health', 'sport', 'lifestyle'],
+    score_keys: ['health', 'lifestyle', 'practical'],
+  },
+  {
+    id: 'boccashback',
+    bank: '交通银行',
+    name: '太平洋返现白金卡',
+    tagline: '高额返现，全场通吃',
+    tags: ['无限返现', '超市返现', '日常'],
+    annual: '600元/年',
+    annualFee: 600,
+    gradient: ['#1a1a2e', '#16213e', '#0f3460'],
+    icon: '💰',
+    features: ['超市/便利店2%返现', '网购1.5%返现', '加油1%返现', '无上限返现'],
+    profile: ['practical', 'shopping', 'daily'],
+    score_keys: ['cashback', 'shopping', 'practical'],
+  },
+  {
+    id: 'cmbplatinum',
+    bank: '招商银行',
+    name: '全币种国际信用卡',
+    tagline: '出境游神卡，零手续费',
+    tags: ['0手续费', '境外返现', '全币'],
+    annual: '360元/年',
+    annualFee: 360,
+    gradient: ['#c94b4b', '#4b134f'],
+    icon: '🌍',
+    features: ['境外消费0手续费', '汇率实时最优', '境外ATM取款', '全球退税服务'],
+    profile: ['overseas', 'travel', 'shopping'],
+    score_keys: ['overseas', 'travel', 'shopping'],
+  },
+  {
+    id: 'icbclux',
+    bank: '工商银行',
+    name: '融e购联名卡',
+    tagline: '电商购物专属返现',
+    tags: ['电商返现', '双11', '网购'],
+    annual: '永久免年费',
+    annualFee: 0,
+    gradient: ['#e96c19', '#f5a623'],
+    icon: '📦',
+    features: ['京东/淘宝返现2%', '双11最高10%', '免息分期12期', '免年费'],
+    profile: ['shopping', 'online', 'young'],
+    score_keys: ['shopping', 'cashback', 'free_annual'],
+  },
+  {
+    id: 'cmblux',
+    bank: '招商银行',
+    name: '招行金葵花信用卡',
+    tagline: '高端财富管理客户专属',
+    tags: ['私人银行', '高端权益', '保险'],
+    annual: '2000元/年',
+    annualFee: 2000,
+    gradient: ['#b8860b', '#ffd700', '#b8860b'],
+    icon: '👑',
+    features: ['私人银行服务', '高端商旅礼遇', '全球旅行保险', '专属客服'],
+    profile: ['premium', 'business', 'wealth'],
+    score_keys: ['premium', 'travel', 'points'],
+  },
+  {
+    id: 'cibonline',
+    bank: '光大银行',
+    name: '阳光积分信用卡',
+    tagline: '积分永不过期，兑换超值',
+    tags: ['积分不过期', '积分商城', '实用'],
+    annual: '刷6次免年费',
+    annualFee: 200,
+    gradient: ['#fd746c', '#ff9068'],
+    icon: '🎁',
+    features: ['积分永久有效', '积分兑换商城', '生日积分翻倍', '账单分期无手续费'],
+    profile: ['practical', 'lifestyle', 'young'],
+    score_keys: ['points', 'practical', 'lifestyle'],
+  },
+];
+
+/* ─────────────────────────────────────────
+   Score dimensions
+───────────────────────────────────────── */
+const SCORE_LABELS = {
+  entertainment: '娱乐消费',
+  dining: '餐饮美食',
+  shopping: '购物消费',
+  travel: '出行旅游',
+  cashback: '日常返现',
+  points: '积分积累',
+  overseas: '境外消费',
+  car: '驾车出行',
+  health: '健康运动',
+  lifestyle: '生活方式',
+  premium: '高端权益',
+  free_annual: '免年费',
+  practical: '实用优惠',
+  airport: '机场服务',
+};
+
+/* ─────────────────────────────────────────
+   State
+───────────────────────────────────────── */
+let current = 0;
+let liked = [];
+let history = [];   // for undo: [{idx, dir}]
+let scores = {};    // dimension -> count
+
+Object.keys(SCORE_LABELS).forEach(k => scores[k] = 0);
+
+/* ─────────────────────────────────────────
+   Render card
+───────────────────────────────────────── */
+function buildCardEl(card, isBack = false) {
+  const el = document.createElement('div');
+  el.className = isBack ? 'swipe-card' : 'swipe-card';
+
+  const g = card.gradient;
+  el.style.background = g.length === 3
+    ? `linear-gradient(135deg, ${g[0]}, ${g[1]}, ${g[2]})`
+    : `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
+
+  el.innerHTML = `
+    <div class="card-inner">
+      <div>
+        <div class="card-bank">${card.bank.toUpperCase()}</div>
+        <div class="card-name">${card.name}</div>
+        <div class="card-tagline">${card.tagline}</div>
+        <div class="chip"></div>
+        <div class="card-number">•••• •••• •••• 8888</div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-tags">
+          ${card.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
+        <div class="card-annual">
+          年费<strong>${card.annual}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="like-overlay">喜欢</div>
+    <div class="nope-overlay">跳过</div>
+  `;
+  return el;
+}
+
+function renderStack() {
+  const stack = document.getElementById('card-stack');
+  stack.innerHTML = '';
+
+  if (current >= CARDS.length) {
+    showResult();
+    return;
+  }
+
+  // Back cards (visual depth)
+  for (let i = Math.min(current + 2, CARDS.length - 1); i > current; i--) {
+    const back = buildCardEl(CARDS[i], true);
+    back.style.transform = `translateX(-50%) scale(${0.9 + (i - current - 1) * 0.05}) translateY(${(i - current) * 12}px)`;
+    back.style.position = 'absolute';
+    back.style.top = '0';
+    back.style.left = '50%';
+    back.style.opacity = String(0.2 + (i - current - 1) * 0.2);
+    back.style.pointerEvents = 'none';
+    stack.appendChild(back);
+  }
+
+  // Active card
+  const card = CARDS[current];
+  const el = buildCardEl(card);
+  el.dataset.cardId = card.id;
+  stack.appendChild(el);
+
+  bindSwipe(el);
+  updateProgress();
+}
+
+/* ─────────────────────────────────────────
+   Touch / Mouse drag
+───────────────────────────────────────── */
+function bindSwipe(el) {
+  let startX = 0, startY = 0, dx = 0;
+  let dragging = false;
+
+  const likeEl = el.querySelector('.like-overlay');
+  const nopeEl = el.querySelector('.nope-overlay');
+
+  function onStart(x, y) {
+    startX = x; startY = y; dragging = true;
+    el.style.transition = 'none';
+  }
+  function onMove(x) {
+    if (!dragging) return;
+    dx = x - startX;
+    const rot = dx * 0.08;
+    el.style.transform = `translateX(calc(-50% + ${dx}px)) rotate(${rot}deg)`;
+    const ratio = Math.min(Math.abs(dx) / 80, 1);
+    if (dx > 0) {
+      likeEl.style.opacity = ratio;
+      nopeEl.style.opacity = 0;
+    } else {
+      nopeEl.style.opacity = ratio;
+      likeEl.style.opacity = 0;
+    }
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    likeEl.style.opacity = 0;
+    nopeEl.style.opacity = 0;
+    el.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    if (dx > 80) {
+      commitSwipe('right');
+    } else if (dx < -80) {
+      commitSwipe('left');
+    } else {
+      el.style.transform = 'translateX(-50%) rotate(0deg)';
+    }
+  }
+
+  // Mouse
+  el.addEventListener('mousedown', e => { onStart(e.clientX, e.clientY); });
+  window.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX); });
+  window.addEventListener('mouseup', () => onEnd());
+
+  // Touch
+  el.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    onStart(t.clientX, t.clientY);
+  }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    onMove(t.clientX);
+  }, { passive: true });
+  el.addEventListener('touchend', () => onEnd());
+}
+
+/* ─────────────────────────────────────────
+   Swipe logic
+───────────────────────────────────────── */
+function commitSwipe(dir) {
+  const card = CARDS[current];
+  history.push({ idx: current, dir });
+
+  if (dir === 'right') {
+    liked.push(card);
+    card.score_keys.forEach(k => { if (scores[k] !== undefined) scores[k] += 1; });
+  }
+
+  const el = document.querySelector('.swipe-card[data-card-id]');
+  if (el) {
+    el.classList.add(dir === 'right' ? 'animate-right' : 'animate-left');
+    setTimeout(() => { current++; renderStack(); }, 380);
+  }
+}
+
+function swipeCard(dir) {
+  const el = document.querySelector('.swipe-card[data-card-id]');
+  if (!el) return;
+  commitSwipe(dir);
+}
+
+function undoSwipe() {
+  if (history.length === 0) return;
+  const last = history.pop();
+  if (last.dir === 'right') {
+    const idx = liked.findIndex(c => c.id === CARDS[last.idx].id);
+    if (idx !== -1) {
+      liked.splice(idx, 1);
+      CARDS[last.idx].score_keys.forEach(k => { if (scores[k] > 0) scores[k] -= 1; });
+    }
+  }
+  current = last.idx;
+  renderStack();
+}
+
+/* ─────────────────────────────────────────
+   Progress
+───────────────────────────────────────── */
+function updateProgress() {
+  const pct = Math.round((current / CARDS.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${current} / ${CARDS.length}`;
+}
+
+/* ─────────────────────────────────────────
+   Result Page
+───────────────────────────────────────── */
+function showResult() {
+  document.getElementById('stage-swipe').style.display = 'none';
+  const rs = document.getElementById('stage-result');
+  rs.style.display = 'flex';
+
+  // Find top dimension
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const topDims = sorted.slice(0, 3).filter(d => d[1] > 0).map(d => d[0]);
+
+  // Score each liked card
+  let bestCard = null;
+  let bestScore = -1;
+
+  // If no likes, recommend from all
+  const pool = liked.length > 0 ? liked : CARDS;
+  pool.forEach(card => {
+    let s = 0;
+    topDims.forEach(dim => {
+      if (card.score_keys.includes(dim)) s += 2;
+    });
+    if (s > bestScore) { bestScore = s; bestCard = card; }
+  });
+
+  if (!bestCard) bestCard = CARDS[0];
+
+  const container = document.getElementById('result-content');
+
+  // Generate reason
+  const matchedLabels = bestCard.score_keys
+    .filter(k => topDims.includes(k))
+    .map(k => SCORE_LABELS[k]);
+  const reasonText = matchedLabels.length > 0
+    ? `根据你的偏好（${topDims.map(d => SCORE_LABELS[d]).join('、')}），这张卡在${matchedLabels.join('、')}方面与你最匹配。`
+    : `综合你的滑动行为分析，这张卡整体权益最贴近你的需求。`;
+
+  const g = bestCard.gradient;
+  const gradStr = g.length === 3
+    ? `linear-gradient(135deg, ${g[0]}, ${g[1]}, ${g[2]})`
+    : `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
+
+  // Other liked cards
+  const otherLiked = liked.filter(c => c.id !== bestCard.id);
+
+  container.innerHTML = `
+    <h2>🎯 为你推荐</h2>
+    <p class="sub">基于你的 ${CARDS.length} 张卡片选择行为，智能分析完成</p>
+
+    <span class="recommend-badge">✦ 最佳匹配</span>
+
+    <div class="result-card" style="background:${gradStr}">
+      <div class="rc-top">
+        <div class="rc-icon">${bestCard.icon}</div>
+        <div class="rc-info">
+          <div class="rc-bank">${bestCard.bank}</div>
+          <div class="rc-name">${bestCard.name}</div>
+        </div>
+        <div class="match-score">${liked.includes(bestCard) ? '💚 已喜欢' : '🤖 AI推荐'}</div>
+      </div>
+      <div class="rc-body">
+        <div class="rc-reason">${reasonText}</div>
+        <div class="rc-highlights">
+          ${bestCard.features.map(f => `<div class="highlight">✓ ${f}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    ${topDims.length > 0 ? `
+    <div style="margin-top:4px; padding: 14px 18px; background:var(--surface); border-radius:16px;">
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;">📊 你的消费偏好分析</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${topDims.map(d => `
+          <div style="padding:6px 14px;background:rgba(99,102,241,0.15);border-radius:99px;font-size:0.78rem;font-weight:600;color:var(--blue);">
+            ${SCORE_LABELS[d]} ${Array(scores[d]+1).join('★')}
+          </div>
+        `).join('')}
+      </div>
+    </div>` : ''}
+
+    ${otherLiked.length > 0 ? `
+    <div class="liked-section">
+      <h3>你也喜欢的卡片 (${otherLiked.length})</h3>
+      <div class="liked-list">
+        ${otherLiked.map(c => {
+          const cg = c.gradient;
+          const cgs = cg.length === 3
+            ? `linear-gradient(135deg, ${cg[0]}, ${cg[1]}, ${cg[2]})`
+            : `linear-gradient(135deg, ${cg[0]}, ${cg[1]})`;
+          return `
+          <div class="liked-item" style="background:${cgs}">
+            <div class="li-icon">${c.icon}</div>
+            <div>
+              <div class="li-bank">${c.bank}</div>
+              <div class="li-name">${c.name}</div>
+            </div>
+            <div style="margin-left:auto;font-size:0.72rem;opacity:0.8">${c.annual}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+
+    ${liked.length === 0 ? `
+    <div class="no-likes">你没有右滑任何卡片，以下是基于 AI 分析的推荐。</div>
+    ` : ''}
+
+    <button class="restart-btn" onclick="restart()">🔄 重新测一次</button>
+  `;
+}
+
+/* ─────────────────────────────────────────
+   Restart
+───────────────────────────────────────── */
+function restart() {
+  current = 0;
+  liked = [];
+  history = [];
+  Object.keys(scores).forEach(k => scores[k] = 0);
+  document.getElementById('stage-result').style.display = 'none';
+  document.getElementById('stage-swipe').style.display = 'flex';
+  renderStack();
+}
+
+/* ─────────────────────────────────────────
+   Init
+───────────────────────────────────────── */
+renderStack();
+</script>
+</body>
+</html>
