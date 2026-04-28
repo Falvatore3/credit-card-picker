@@ -1,835 +1,899 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>找到你的信用卡</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0d0f18;
-      --surface: #161929;
-      --card-r: 28px;
-      --green: #22c55e;
-      --red: #ef4444;
-      --blue: #3b82f6;
-      --purple: #a855f7;
-      --gold: #f59e0b;
-      --text: #f1f5f9;
-      --muted: #64748b;
-      --muted2: #94a3b8;
-    }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>信用卡推荐 · 2025</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f18;--sur:#161929;--sur2:#1e2236;
+  --green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--gold:#f59e0b;--cyan:#06b6d4;
+  --text:#f1f5f9;--muted:#64748b;--muted2:#94a3b8;
+  --r:24px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
 
-    /* ══ INTRO ══ */
-    #stage-intro {
-      width: 100%; max-width: 480px;
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 40px 32px;
-      text-align: center;
-      gap: 20px;
-    }
-    .intro-emoji { font-size: 64px; }
-    .intro-title { font-size: 28px; font-weight: 800; line-height: 1.2; }
-    .intro-sub { font-size: 15px; color: var(--muted2); line-height: 1.7; }
-    .intro-rules {
-      background: var(--surface);
-      border-radius: 20px;
-      padding: 20px 24px;
-      width: 100%;
-      display: flex; flex-direction: column; gap: 14px;
-    }
-    .rule-row { display: flex; align-items: center; gap: 14px; text-align: left; }
-    .rule-icon {
-      width: 44px; height: 44px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
-    }
-    .rule-row p { font-size: 14px; color: var(--muted2); line-height: 1.5; }
-    .rule-row strong { color: var(--text); display: block; font-size: 15px; margin-bottom: 2px; }
-    .start-btn {
-      width: 100%; padding: 18px;
-      border-radius: 99px; border: none;
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      color: #fff; font-size: 17px; font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 8px 32px rgba(99,102,241,.4);
-      transition: transform .15s;
-    }
-    .start-btn:hover { transform: scale(1.03); }
+/* ── INTRO ── */
+#s-intro{width:100%;max-width:480px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;gap:22px;text-align:center}
+.i-big{font-size:60px}
+.i-title{font-size:26px;font-weight:800;line-height:1.25}
+.i-sub{font-size:14px;color:var(--muted2);line-height:1.7}
+.i-tips{width:100%;background:var(--sur);border-radius:20px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.i-row{display:flex;align-items:center;gap:14px;text-align:left}
+.i-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.i-row p{font-size:13px;color:var(--muted2);line-height:1.5}
+.i-row strong{color:var(--text);display:block;font-size:14px;margin-bottom:1px}
+.btn-start{width:100%;padding:17px;border-radius:99px;border:none;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 8px 28px rgba(99,102,241,.4);transition:transform .15s}
+.btn-start:hover{transform:scale(1.03)}
 
-    /* ══ SWIPE STAGE ══ */
-    #stage-swipe {
-      width: 100%; max-width: 480px;
-      display: none; flex-direction: column;
-      align-items: center;
-      padding: 20px 24px 32px;
-    }
+/* ── QUIZ STAGE ── */
+#s-quiz{width:100%;max-width:480px;display:none;flex-direction:column;align-items:center;padding:18px 22px 40px}
+.q-header{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.q-title{font-size:15px;font-weight:700}
+.q-counter{font-size:12px;color:var(--muted2)}
+.prog{width:100%;height:4px;background:#1e2235;border-radius:99px;overflow:hidden;margin-bottom:22px}
+.prog-f{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:99px;transition:width .4s}
 
-    /* header */
-    .sw-header {
-      width: 100%;
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 14px;
-    }
-    .sw-title { font-size: 16px; font-weight: 700; }
-    .sw-count { font-size: 13px; color: var(--muted2); }
+/* swipe hint */
+.sw-hint{display:flex;gap:20px;margin-bottom:16px}
+.sw-hint span{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
 
-    /* progress */
-    .prog-bar { width: 100%; height: 5px; background: #1e2235; border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
-    .prog-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 99px; transition: width .4s ease; }
+/* ── Card stack ── */
+.stack{position:relative;width:100%;height:420px}
+.back-card{position:absolute;top:0;left:50%;border-radius:var(--r);pointer-events:none;background:var(--sur2)}
+.back1{width:calc(100% - 28px);height:390px;transform:translateX(-50%) translateY(18px) scale(.96);opacity:.35}
+.back2{width:calc(100% - 52px);height:390px;transform:translateX(-50%) translateY(34px) scale(.92);opacity:.18}
 
-    /* hint */
-    .sw-hint { display: flex; gap: 24px; margin-bottom: 18px; }
-    .sw-hint span { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.q-card{position:absolute;top:0;left:50%;width:100%;border-radius:var(--r);transform:translateX(-50%);cursor:grab;touch-action:none;box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden;will-change:transform;display:flex;flex-direction:column;background:var(--sur)}
+.q-card:active{cursor:grabbing}
+.qc-band{height:7px;flex-shrink:0}
+.qc-body{flex:1;padding:26px 26px 22px;display:flex;flex-direction:column;gap:0}
+.qc-cat{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 11px;border-radius:99px;margin-bottom:18px;align-self:flex-start}
+.qc-em{font-size:46px;display:block;margin-bottom:14px}
+.qc-q{font-size:20px;font-weight:800;line-height:1.35;margin-bottom:8px}
+.qc-detail{font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:18px}
 
-    /* ── Card stack ── */
-    .card-stack { position: relative; width: 100%; height: 400px; }
+/* ── Question types ── */
 
-    .q-card-back {
-      position: absolute; top: 0; left: 50%;
-      border-radius: var(--card-r);
-      pointer-events: none;
-    }
-    .q-card-back-1 {
-      width: calc(100% - 32px);
-      height: 370px;
-      transform: translateX(-50%) translateY(18px) scale(.96);
-      opacity: .35;
-    }
-    .q-card-back-2 {
-      width: calc(100% - 56px);
-      height: 370px;
-      transform: translateX(-50%) translateY(34px) scale(.92);
-      opacity: .18;
-    }
+/* SWIPE type: hint at bottom */
+.qc-swipe-foot{display:flex;justify-content:space-between;margin-top:auto}
+.qc-swipe-foot span{font-size:12px;color:var(--muted)}
 
-    .q-card {
-      position: absolute; top: 0; left: 50%;
-      width: 100%; height: 370px;
-      border-radius: var(--card-r);
-      transform: translateX(-50%);
-      cursor: grab;
-      touch-action: none;
-      box-shadow: 0 24px 64px rgba(0,0,0,.55);
-      overflow: hidden;
-      will-change: transform;
-      display: flex; flex-direction: column;
-    }
-    .q-card:active { cursor: grabbing; }
+/* CHOICE type */
+.qc-choices{display:flex;flex-direction:column;gap:9px;margin-top:auto}
+.choice-btn{padding:12px 16px;border-radius:14px;border:1.5px solid var(--sur2);background:var(--sur2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:background .15s,border-color .15s;display:flex;align-items:center;gap:10px}
+.choice-btn:hover{background:#252840;border-color:#3a3f60}
+.choice-btn.selected{border-color:var(--blue);background:rgba(59,130,246,.12);color:var(--blue)}
+.choice-btn .cb-ico{font-size:18px;flex-shrink:0}
 
-    /* card top band */
-    .qc-band {
-      height: 8px;
-      flex-shrink: 0;
-    }
+/* MULTI type */
+.qc-multi{display:flex;flex-wrap:wrap;gap:9px;margin-top:auto}
+.multi-btn{padding:9px 15px;border-radius:99px;border:1.5px solid var(--sur2);background:var(--sur2);color:var(--muted2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.multi-btn:hover{border-color:#3a3f60;color:var(--text)}
+.multi-btn.selected{border-color:var(--blue);background:rgba(59,130,246,.15);color:var(--blue)}
+.multi-next{margin-top:14px;width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:14px;font-weight:700;cursor:pointer}
 
-    /* card body */
-    .qc-body {
-      flex: 1;
-      background: var(--surface);
-      padding: 32px 28px 24px;
-      display: flex; flex-direction: column; justify-content: space-between;
-    }
+/* SLIDER type */
+.qc-slider-wrap{margin-top:auto}
+.slider-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted2);margin-bottom:8px}
+.slider-val{text-align:center;font-size:22px;font-weight:800;color:var(--blue);margin-bottom:12px}
+input[type=range]{width:100%;accent-color:var(--blue);height:6px}
+.slider-next{margin-top:14px;width:100%;padding:12px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:14px;font-weight:700;cursor:pointer}
 
-    .qc-category {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 700; letter-spacing: .06em;
-      padding: 5px 12px; border-radius: 99px;
-      margin-bottom: 20px;
-      align-self: flex-start;
-    }
+/* overlays */
+.ov-yes,.ov-no{position:absolute;top:26px;font-size:20px;font-weight:900;padding:5px 16px;border-radius:9px;border:3px solid;opacity:0;pointer-events:none;letter-spacing:.04em;z-index:5}
+.ov-yes{left:20px;color:var(--green);border-color:var(--green);transform:rotate(-12deg)}
+.ov-no{right:20px;color:var(--red);border-color:var(--red);transform:rotate(12deg)}
 
-    .qc-emoji { font-size: 52px; margin-bottom: 16px; display: block; }
-    .qc-question { font-size: 22px; font-weight: 800; line-height: 1.35; margin-bottom: 10px; }
-    .qc-detail { font-size: 14px; color: var(--muted2); line-height: 1.6; }
+/* action row */
+.act-row{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:24px}
+.btn-c{border:none;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;box-shadow:0 6px 18px rgba(0,0,0,.35);font-size:22px}
+.btn-c:hover{transform:scale(1.1)}
+.btn-c:active{transform:scale(.93)}
+.btn-no {width:64px;height:64px;background:#2a1f2a;color:var(--red)}
+.btn-ok {width:64px;height:64px;background:#1a2a1f;color:var(--green)}
+.btn-ud {width:50px;height:50px;background:#1e2030;color:var(--gold);font-size:18px}
+.act-labels{display:flex;justify-content:space-between;width:100%;padding:0 8px;margin-top:8px}
+.act-labels span{font-size:11px;font-weight:700}
 
-    .qc-swipe-hint {
-      display: flex; justify-content: space-between;
-      margin-top: 20px;
-    }
-    .qc-swipe-hint span {
-      font-size: 12px; color: var(--muted);
-      display: flex; align-items: center; gap: 4px;
-    }
+/* ── RESULT ── */
+#s-result{display:none;flex-direction:column;width:100%;max-width:480px;padding:22px 22px 60px;gap:14px}
+.res-top{text-align:center;padding:8px 0 4px}
+.res-big{font-size:46px}
+.res-title{font-size:22px;font-weight:800;margin-top:6px}
+.res-sub{font-size:13px;color:var(--muted2);margin-top:5px;line-height:1.6}
 
-    /* overlays */
-    .overlay-yes, .overlay-no {
-      position: absolute;
-      top: 28px;
-      font-size: 22px; font-weight: 900;
-      padding: 6px 18px;
-      border-radius: 10px;
-      border: 3px solid;
-      opacity: 0;
-      pointer-events: none;
-      letter-spacing: .05em;
-      z-index: 5;
-    }
-    .overlay-yes { left: 22px; color: var(--green); border-color: var(--green); transform: rotate(-12deg); }
-    .overlay-no  { right: 22px; color: var(--red);   border-color: var(--red);   transform: rotate(12deg);  }
+.profile-box{background:var(--sur);border-radius:18px;padding:16px 18px}
+.pb-title{font-size:12px;color:var(--muted2);margin-bottom:10px}
+.pb-tags{display:flex;flex-wrap:wrap;gap:7px}
+.pb-tag{font-size:12px;padding:5px 13px;border-radius:99px;background:rgba(59,130,246,.12);color:var(--blue);font-weight:600}
 
-    /* action buttons */
-    .action-row {
-      display: flex; align-items: center; justify-content: center;
-      gap: 28px; margin-top: 28px;
-    }
-    .btn-circ {
-      border: none; cursor: pointer; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 6px 20px rgba(0,0,0,.35);
-    }
-    .btn-circ:hover { transform: scale(1.1); }
-    .btn-circ:active { transform: scale(.93); }
-    .btn-no   { width: 68px; height: 68px; background: #2a1f2a; color: var(--red);   font-size: 26px; }
-    .btn-yes  { width: 68px; height: 68px; background: #1a2a1f; color: var(--green); font-size: 26px; }
-    .btn-undo { width: 52px; height: 52px; background: #1e2030; color: var(--gold);  font-size: 20px; }
+.top-label{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 13px;border-radius:99px;background:linear-gradient(90deg,var(--gold),#f97316);color:#fff}
 
-    /* labels */
-    .label-row {
-      display: flex; justify-content: space-between; width: 100%; margin-top: 10px;
-      padding: 0 10px;
-    }
-    .label-no  { font-size: 12px; color: var(--red);   font-weight: 700; }
-    .label-yes { font-size: 12px; color: var(--green); font-weight: 700; }
+.r-card{border-radius:22px;overflow:hidden;box-shadow:0 14px 44px rgba(0,0,0,.45)}
+.r-top{padding:22px 22px 16px;display:flex;align-items:center;gap:14px}
+.r-ico{width:56px;height:56px;border-radius:15px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.r-info{flex:1}
+.r-bank{font-size:10px;color:rgba(255,255,255,.7);font-weight:700;letter-spacing:.08em}
+.r-name{font-size:17px;font-weight:800;color:#fff}
+.r-pill{font-size:11px;font-weight:700;padding:4px 11px;border-radius:99px;background:rgba(255,255,255,.18);color:#fff;white-space:nowrap}
+.r-body{padding:14px 22px 22px;background:rgba(0,0,0,.22)}
+.r-reason{font-size:13px;color:rgba(255,255,255,.88);line-height:1.7;margin-bottom:12px}
+.r-feats{display:flex;flex-wrap:wrap;gap:7px}
+.r-feat{font-size:11px;padding:4px 11px;background:rgba(255,255,255,.12);border-radius:8px;color:rgba(255,255,255,.9)}
+.r-annual{margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)}
 
-    /* ══ RESULT STAGE ══ */
-    #stage-result {
-      display: none; flex-direction: column;
-      width: 100%; max-width: 480px;
-      padding: 24px 24px 60px;
-      gap: 16px;
-    }
-    .res-header { text-align: center; padding: 10px 0 4px; }
-    .res-emoji { font-size: 48px; }
-    .res-title { font-size: 24px; font-weight: 800; margin-top: 8px; }
-    .res-sub { font-size: 14px; color: var(--muted2); margin-top: 6px; line-height: 1.6; }
+.sec-title{font-size:12px;color:var(--muted2);font-weight:600;margin-bottom:8px}
+.other-list{display:flex;flex-direction:column;gap:9px}
+.other-item{border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.o-ico{font-size:26px}
+.o-bank{font-size:10px;color:rgba(255,255,255,.6)}
+.o-name{font-size:14px;font-weight:700;color:#fff}
+.o-annual{margin-left:auto;font-size:11px;color:rgba(255,255,255,.65)}
 
-    /* top pick */
-    .top-label {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 700;
-      padding: 5px 14px; border-radius: 99px;
-      background: linear-gradient(90deg, var(--gold), #f97316);
-      color: #fff;
-      margin-bottom: 4px;
-    }
+.btn-restart{padding:15px;border-radius:99px;border:none;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:15px;font-weight:700;cursor:pointer;text-align:center;box-shadow:0 8px 28px rgba(99,102,241,.35);transition:transform .15s}
+.btn-restart:hover{transform:scale(1.03)}
 
-    .res-card {
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 16px 48px rgba(0,0,0,.45);
-    }
-    .res-card-top {
-      padding: 24px 24px 18px;
-      display: flex; align-items: center; gap: 16px;
-    }
-    .res-card-icon {
-      width: 60px; height: 60px; border-radius: 16px;
-      background: rgba(255,255,255,.18);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px; flex-shrink: 0;
-    }
-    .res-card-info { flex: 1; }
-    .res-card-bank { font-size: 11px; color: rgba(255,255,255,.7); font-weight: 700; letter-spacing: .08em; }
-    .res-card-name { font-size: 18px; font-weight: 800; color: #fff; }
-    .res-match-pill {
-      font-size: 12px; font-weight: 700;
-      padding: 5px 12px; border-radius: 99px;
-      background: rgba(255,255,255,.18); color: #fff;
-      white-space: nowrap;
-    }
-    .res-card-body {
-      padding: 16px 24px 24px;
-      background: rgba(0,0,0,.22);
-    }
-    .res-reason { font-size: 14px; color: rgba(255,255,255,.88); line-height: 1.7; margin-bottom: 14px; }
-    .res-features { display: flex; flex-wrap: wrap; gap: 8px; }
-    .res-feat {
-      font-size: 12px; padding: 5px 12px;
-      background: rgba(255,255,255,.12);
-      border-radius: 8px; color: rgba(255,255,255,.9);
-    }
-
-    /* profile tags */
-    .profile-box {
-      background: var(--surface); border-radius: 20px;
-      padding: 18px 20px;
-    }
-    .profile-box-title { font-size: 13px; color: var(--muted2); margin-bottom: 12px; }
-    .profile-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-    .profile-tag {
-      font-size: 13px; padding: 6px 16px;
-      border-radius: 99px;
-      background: rgba(99,102,241,.15);
-      color: var(--blue); font-weight: 600;
-    }
-
-    /* other picks */
-    .other-title { font-size: 13px; color: var(--muted2); font-weight: 600; margin-bottom: 8px; }
-    .other-list { display: flex; flex-direction: column; gap: 10px; }
-    .other-item {
-      border-radius: 18px; padding: 14px 18px;
-      display: flex; align-items: center; gap: 14px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.3);
-    }
-    .other-icon { font-size: 28px; }
-    .other-bank { font-size: 11px; color: rgba(255,255,255,.65); }
-    .other-name { font-size: 15px; font-weight: 700; color: #fff; }
-    .other-annual { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.7); }
-
-    /* restart */
-    .restart-btn {
-      padding: 16px; border-radius: 99px; border: none;
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      color: #fff; font-size: 16px; font-weight: 700;
-      cursor: pointer; text-align: center;
-      box-shadow: 0 8px 32px rgba(99,102,241,.35);
-      transition: transform .15s;
-    }
-    .restart-btn:hover { transform: scale(1.03); }
-  </style>
+/* ── Swipe-only action: hide buttons for non-swipe questions ── */
+.hide{display:none!important}
+</style>
 </head>
 <body>
 
-<!-- ══════════ INTRO ══════════ -->
-<div id="stage-intro">
-  <div class="intro-emoji">💳</div>
-  <div class="intro-title">找到最适合你的<br>信用卡</div>
-  <div class="intro-sub">回答几个关于你消费习惯的问题<br>我们帮你匹配最合适的信用卡</div>
-  <div class="intro-rules">
-    <div class="rule-row">
-      <div class="rule-icon" style="background:rgba(34,197,94,.15)">👉</div>
-      <p><strong>右滑 = 符合我</strong>这个描述和我的消费习惯匹配</p>
+<!-- INTRO -->
+<div id="s-intro">
+  <div class="i-big">💳</div>
+  <div class="i-title">找到最适合你的<br>信用卡</div>
+  <div class="i-sub">回答几个问题，从 2025 年主流热门信用卡中<br>为你精准匹配</div>
+  <div class="i-tips">
+    <div class="i-row">
+      <div class="i-ico" style="background:rgba(59,130,246,.15)">🎯</div>
+      <p><strong>从大到小筛选</strong>先聊消费习惯，再精准匹配场景</p>
     </div>
-    <div class="rule-row">
-      <div class="rule-icon" style="background:rgba(239,68,68,.15)">👈</div>
-      <p><strong>左滑 = 不符合</strong>这个不太对，继续下一题</p>
+    <div class="i-row">
+      <div class="i-ico" style="background:rgba(34,197,94,.15)">👇</div>
+      <p><strong>多种题型</strong>单选、多选、滑动……比 yes/no 更准确</p>
     </div>
-    <div class="rule-row">
-      <div class="rule-icon" style="background:rgba(245,158,11,.15)">↩</div>
-      <p><strong>撤销</strong>刚才滑错了，退回上一题</p>
+    <div class="i-row">
+      <div class="i-ico" style="background:rgba(245,158,11,.15)">🗂️</div>
+      <p><strong>50+ 热门卡</strong>2025 年仍在正常发卡、权益完整的主流产品</p>
     </div>
   </div>
-  <button class="start-btn" onclick="startQuiz()">开始测试 →</button>
+  <button class="btn-start" onclick="startQuiz()">开始匹配 →</button>
 </div>
 
-<!-- ══════════ SWIPE STAGE ══════════ -->
-<div id="stage-swipe">
-  <div class="sw-header">
-    <span class="sw-title">了解你的消费偏好</span>
-    <span class="sw-count" id="sw-count">1 / 12</span>
+<!-- QUIZ -->
+<div id="s-quiz">
+  <div class="q-header">
+    <span class="q-title">了解你的消费习惯</span>
+    <span class="q-counter" id="q-counter">1 / 10</span>
   </div>
-  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-  <div class="sw-hint">
-    <span>👈 不符合</span>
-    <span>👉 符合我</span>
+  <div class="prog"><div class="prog-f" id="prog-f" style="width:0%"></div></div>
+  <div class="sw-hint" id="sw-hint">
+    <span>👈 不符合我</span><span>👉 符合我</span>
   </div>
-
-  <div class="card-stack" id="card-stack"></div>
-
-  <div class="action-row">
-    <button class="btn-circ btn-no"   onclick="swipe('no')">✕</button>
-    <button class="btn-circ btn-undo" onclick="undo()">↩</button>
-    <button class="btn-circ btn-yes"  onclick="swipe('yes')">✓</button>
+  <div class="stack" id="stack"></div>
+  <div class="act-row" id="act-row">
+    <button class="btn-c btn-no" onclick="swipe('no')">✕</button>
+    <button class="btn-c btn-ud" onclick="undo()">↩</button>
+    <button class="btn-c btn-ok" onclick="swipe('yes')">✓</button>
   </div>
-  <div class="label-row">
-    <span class="label-no">不符合</span>
-    <span class="label-yes">符合我</span>
+  <div class="act-labels" id="act-labels">
+    <span style="color:var(--red)">不符合</span>
+    <span style="color:var(--green)">符合我</span>
   </div>
 </div>
 
-<!-- ══════════ RESULT STAGE ══════════ -->
-<div id="stage-result"></div>
+<!-- RESULT -->
+<div id="s-result"></div>
 
 <script>
-/* ═══════════════════════════════════════
-   QUESTIONS  (12题，覆盖主要消费场景)
-═══════════════════════════════════════ */
-const QUESTIONS = [
-  {
-    emoji: '🍜',
-    category: '餐饮外卖',
-    categoryColor: '#f97316',
-    question: '我经常点外卖或在外就餐',
-    detail: '比如每周3次以上叫外卖、经常约饭、偶尔去餐厅聚餐……',
-    tag: 'dining',
-    color: '#f97316',
-  },
-  {
-    emoji: '✈️',
-    category: '出行差旅',
-    categoryColor: '#3b82f6',
-    question: '我经常坐飞机或高铁出行',
-    detail: '每年出行超过6次，出差、旅行都算，希望能用上贵宾厅。',
-    tag: 'travel',
-    color: '#3b82f6',
-  },
-  {
-    emoji: '🛍️',
-    category: '购物消费',
-    categoryColor: '#a855f7',
-    question: '我在网上购物的频率很高',
-    detail: '京东、淘宝、拼多多……每个月网购支出超过500元。',
-    tag: 'shopping',
-    color: '#a855f7',
-  },
-  {
-    emoji: '🚗',
-    category: '驾车出行',
-    categoryColor: '#f59e0b',
-    question: '我每天开车上下班，经常加油',
-    detail: '有私家车，每月加油支出超过400元，停车费也不少。',
-    tag: 'car',
-    color: '#f59e0b',
-  },
-  {
-    emoji: '🌍',
-    category: '境外消费',
-    categoryColor: '#10b981',
-    question: '我每年会出国旅游或有境外消费',
-    detail: '出境游、海外代购、亚马逊购物……希望省掉手续费。',
-    tag: 'overseas',
-    color: '#10b981',
-  },
-  {
-    emoji: '🎬',
-    category: '娱乐生活',
-    categoryColor: '#ec4899',
-    question: '我喜欢看电影、演唱会、游乐场',
-    detail: '每月至少去一次电影院，偶尔买演出票，享受娱乐折扣。',
-    tag: 'entertainment',
-    color: '#ec4899',
-  },
-  {
-    emoji: '💪',
-    category: '健康运动',
-    categoryColor: '#22c55e',
-    question: '我有办健身卡或定期运动的习惯',
-    detail: '健身房会员、瑜伽课、运动装备……每月健康类支出超300元。',
-    tag: 'health',
-    color: '#22c55e',
-  },
-  {
-    emoji: '💰',
-    category: '年费偏好',
-    categoryColor: '#64748b',
-    question: '我不想付年费，或希望刷几次就能免',
-    detail: '每年固定的年费让我觉得不划算，更喜欢免年费或条件免年费。',
-    tag: 'free_annual',
-    color: '#64748b',
-  },
-  {
-    emoji: '⭐',
-    category: '积分收集',
-    categoryColor: '#eab308',
-    question: '我很在意积分，会用积分换礼品或里程',
-    detail: '积分是否过期、兑换比例……我会认真研究积分规则。',
-    tag: 'points',
-    color: '#eab308',
-  },
-  {
-    emoji: '🏨',
-    category: '酒店出行',
-    categoryColor: '#06b6d4',
-    question: '我经常出差住酒店，注重商旅权益',
-    detail: '每年入住酒店超过10晚，希望有升房、晚退、积分等礼遇。',
-    tag: 'airport',
-    color: '#06b6d4',
-  },
-  {
-    emoji: '👑',
-    category: '高端权益',
-    categoryColor: '#d97706',
-    question: '我愿意付较高年费，换取顶级权益',
-    detail: '年费1000元以上也可以接受，只要权益匹配，比如高端出行、专属客服。',
-    tag: 'premium',
-    color: '#d97706',
-  },
-  {
-    emoji: '🧾',
-    category: '日常消费',
-    categoryColor: '#6366f1',
-    question: '我希望所有日常消费都能获得返现',
-    detail: '超市、便利店、水电煤……不挑场景，日常每一笔都希望有点回报。',
-    tag: 'cashback',
-    color: '#6366f1',
-  },
-];
-
-/* ═══════════════════════════════════════
-   CARDS DATABASE
-═══════════════════════════════════════ */
+/* ═══════════════════════════
+   CARD DATABASE  (50 张 2025 热门卡)
+═══════════════════════════ */
 const CARDS = [
+  // ── 餐饮
+  {id:'cmb-dining',bank:'招商银行',name:'美食GO联名卡',icon:'🍜',annual:'刷6次免',annualFee:200,
+   gradient:['#fa709a','#fee140'],
+   features:['餐饮消费3%返现','美团/饿了么9折','米其林折扣','每月餐饮礼包'],
+   w:{dining:5,cashback:2,free_annual:1}},
+  {id:'psb-dining',bank:'浦发银行',name:'浦发美团联名卡',icon:'🥡',annual:'免年费',annualFee:0,
+   gradient:['#ffecd2','#fcb69f'],
+   features:['美团外卖每单返5元','每月6张外卖券','积分永不过期','零门槛办理'],
+   w:{dining:5,free_annual:3,points:1}},
+  {id:'boc-dining',bank:'中国银行',name:'中银优选白金卡',icon:'🍽️',annual:'刷12次免',annualFee:600,
+   gradient:['#a8edea','#fed6e3'],
+   features:['餐饮返现2%','周末餐厅8.8折','生日当月餐饮翻倍','境内外通用'],
+   w:{dining:4,cashback:2,travel:1}},
+  {id:'cmb-life',bank:'招商银行',name:'招行经典白金卡',icon:'🍷',annual:'3600元/年',annualFee:3600,
+   gradient:['#1a1a2e','#16213e'],
+   features:['五星级餐厅消费8折','高端餐厅会员权益','专属礼宾服务','全球免费WiFi'],
+   w:{dining:3,premium:4,travel:3,airport:2}},
+
+  // ── 出行 / 机场
+  {id:'cmb-air',bank:'招商银行',name:'招行全球支付白金卡',icon:'✈️',annual:'2000元/年',annualFee:2000,
+   gradient:['#0f2027','#2c5364'],
+   features:['无限次机场贵宾厅','高铁贵宾候车室','里程1:1兑换','全球旅行保险'],
+   w:{travel:5,airport:5,points:3,premium:2}},
+  {id:'citic-air',bank:'中信银行',name:'中信东航联名白金卡',icon:'🛫',annual:'年费权益覆盖',annualFee:1000,
+   gradient:['#1cb5e0','#000046'],
+   features:['东航里程积累加速','机场贵宾厅权益','订东航机票折扣','精英常旅权益'],
+   w:{travel:5,points:4,airport:3}},
+  {id:'bocom-travel',bank:'交通银行',name:'交行沃尔玛白金卡',icon:'🌐',annual:'刷满减免',annualFee:600,
+   gradient:['#4776e6','#8e54e9'],
+   features:['机场贵宾厅2次/年','酒店积分加速','境外免手续费','全球退税服务'],
+   w:{travel:3,overseas:3,airport:2,shopping:2}},
+  {id:'pa-travel',bank:'平安银行',name:'平安旅行白金卡',icon:'🗺️',annual:'1200元/年',annualFee:1200,
+   gradient:['#373b44','#4286f4'],
+   features:['无限次机场贵宾厅','高铁贵宾候车室','全球酒店升级','旅行意外险1000万'],
+   w:{travel:5,airport:5,premium:2,points:2}},
+  {id:'ceb-air',bank:'光大银行',name:'光大航空白金卡',icon:'🛩️',annual:'1800元/年',annualFee:1800,
+   gradient:['#f7971e','#ffd200'],
+   features:['每年赠送里程','机场贵宾厅10次','高端酒店优惠','里程兑换无门槛'],
+   w:{travel:4,airport:4,points:4,premium:2}},
+
+  // ── 购物 / 电商
+  {id:'icbc-ecom',bank:'工商银行',name:'融e购联名卡',icon:'📦',annual:'免年费',annualFee:0,
+   gradient:['#e96c19','#f5a623'],
+   features:['京东/淘宝返现2%','双11最高10%返','免息分期12期','积分换京豆'],
+   w:{shopping:5,cashback:3,free_annual:3}},
+  {id:'cmb-jd',bank:'招商银行',name:'招行京东联名卡',icon:'🛒',annual:'免年费',annualFee:0,
+   gradient:['#e8384f','#ff6b6b'],
+   features:['京东购物返现3%','每月88元券包','plus会员续费优惠','免年费'],
+   w:{shopping:5,cashback:2,free_annual:3}},
+  {id:'citic-ali',bank:'中信银行',name:'中信淘宝联名卡',icon:'🧡',annual:'刷6次免',annualFee:200,
+   gradient:['#ff6b35','#f7931e'],
+   features:['天猫消费返现3%','双11最高20%','88VIP优惠','免息期最长56天'],
+   w:{shopping:5,cashback:3,free_annual:1}},
+  {id:'spdb-pinduoduo',bank:'浦发银行',name:'浦发拼多多联名卡',icon:'🥬',annual:'免年费',annualFee:0,
+   gradient:['#e44d26','#f16529'],
+   features:['拼多多返现3%','百亿补贴加速','百亿返现','积分不过期'],
+   w:{shopping:4,cashback:3,free_annual:3}},
+
+  // ── 加油 / 车主
+  {id:'citic-car',bank:'中信银行',name:'中信车主信用卡',icon:'🚗',annual:'刷6次免',annualFee:200,
+   gradient:['#f7971e','#ffd200'],
+   features:['加油返现3%','停车场8折','ETC绑定优惠','违章代缴'],
+   w:{car:5,cashback:2,free_annual:1}},
+  {id:'cmb-car',bank:'招商银行',name:'招行好车主白金卡',icon:'⛽',annual:'800元/年',annualFee:800,
+   gradient:['#1e3c72','#2a5298'],
+   features:['加油满返5%','加油站权益','高速ETC9折','保养优惠'],
+   w:{car:5,cashback:3,premium:1}},
+  {id:'pa-car',bank:'平安银行',name:'平安好车主超享版',icon:'🚙',annual:'2400元/年',annualFee:2400,
+   gradient:['#ff416c','#ff4b2b'],
+   features:['加油8%返现','保险年费减免','代驾服务','全国停车优惠'],
+   w:{car:5,cashback:3,premium:2}},
+  {id:'abc-car',bank:'农业银行',name:'农行金穗车主卡',icon:'🏎️',annual:'刷6次免',annualFee:200,
+   gradient:['#134e5e','#71b280'],
+   features:['加油返现2%','ETC积分加速','违章代缴','汽车保养9折'],
+   w:{car:4,cashback:2,free_annual:1}},
+
+  // ── 境外消费
+  {id:'cmb-allcurrency',bank:'招商银行',name:'全币种国际信用卡',icon:'🌍',annual:'360元/年',annualFee:360,
+   gradient:['#c94b4b','#4b134f'],
+   features:['境外消费0手续费','实时汇率换汇','境外ATM免手续费','全球退税'],
+   w:{overseas:5,travel:3,shopping:1}},
+  {id:'boc-shuanghui',bank:'中国银行',name:'中银双币信用卡',icon:'💱',annual:'刷满减免',annualFee:180,
+   gradient:['#f093fb','#f5576c'],
+   features:['美元/人民币双账户','境外购物1%返现','机场贵宾厅','全球商家折扣'],
+   w:{overseas:5,shopping:3,travel:2}},
+  {id:'hsbc-visa',bank:'汇丰银行',name:'汇丰汇聚优惠白金卡',icon:'🌏',annual:'2800元/年',annualFee:2800,
+   gradient:['#1a1a2e','#e94560'],
+   features:['境外消费积分3倍','机场贵宾厅无限次','环球礼宾服务','全球高端酒店'],
+   w:{overseas:5,premium:4,airport:4,travel:3}},
+  {id:'sc-visa',bank:'渣打银行',name:'渣打优先理财白金卡',icon:'✨',annual:'2400元/年',annualFee:2400,
+   gradient:['#0052d4','#4364f7'],
+   features:['境外消费返现2%','积分永不过期','全球贵宾厅','高端礼遇服务'],
+   w:{overseas:4,premium:4,points:3,airport:3}},
+
+  // ── 日常返现
+  {id:'bocom-cashback',bank:'交通银行',name:'交行太平洋返现白金',icon:'💰',annual:'600元/年',annualFee:600,
+   gradient:['#1a1a2e','#0f3460'],
+   features:['超市/便利店2%返现','网购1.5%返现','加油1%返现','无上限返现'],
+   w:{cashback:5,shopping:2,car:1}},
+  {id:'cmb-cashback',bank:'招商银行',name:'招行经典白金返现卡',icon:'💵',annual:'3600元/年',annualFee:3600,
+   gradient:['#2c3e50','#3498db'],
+   features:['所有消费0.5%返现','境外消费1%返现','生日当月翻倍','年度返现无上限'],
+   w:{cashback:4,overseas:2,premium:2}},
+  {id:'ceb-cashback',bank:'光大银行',name:'光大储蓄信用金卡',icon:'🏦',annual:'刷6次免',annualFee:200,
+   gradient:['#f2994a','#f2c94c'],
+   features:['日常消费1%返现','超市2%返现','医疗消费返现','免年费条件宽松'],
+   w:{cashback:4,free_annual:3,dining:1}},
+  {id:'ccb-cashback',bank:'建设银行',name:'建行龙卡储蓄宝',icon:'🐲',annual:'刷6次免',annualFee:200,
+   gradient:['#005c97','#363795'],
+   features:['日常返现1%','积分不过期','ETC返现加速','免年费门槛低'],
+   w:{cashback:3,free_annual:3,points:2,car:1}},
+
+  // ── 积分
+  {id:'ceb-points',bank:'光大银行',name:'阳光积分信用卡',icon:'⭐',annual:'刷6次免',annualFee:200,
+   gradient:['#fd746c','#ff9068'],
+   features:['积分永久有效','积分兑换商城','生日积分翻倍','分期无手续费'],
+   w:{points:5,free_annual:2,cashback:1}},
+  {id:'bocom-points',bank:'交通银行',name:'交行优惠白金卡',icon:'🎁',annual:'600元/年',annualFee:600,
+   gradient:['#4776e6','#8e54e9'],
+   features:['消费积分3倍','里程兑换无门槛','积分不过期','高端商场折扣'],
+   w:{points:5,shopping:2,travel:2}},
+  {id:'icbc-points',bank:'工商银行',name:'工行牡丹灵通卡',icon:'🌸',annual:'刷6次免',annualFee:200,
+   gradient:['#e9d362','#333'],
+   features:['消费即积分','积分换商品/机票','网银消费积分加速','全国通用'],
+   w:{points:4,free_annual:2,cashback:1}},
+
+  // ── 娱乐 / 年轻人
+  {id:'cmb-young',bank:'招商银行',name:'YOUNG卡',icon:'🎬',annual:'免年费',annualFee:0,
+   gradient:['#667eea','#764ba2'],
+   features:['看电影享折扣','积分兑礼品','零门槛办理','联名款多样'],
+   w:{entertainment:4,free_annual:4,lifestyle:2}},
+  {id:'citic-cosmos',bank:'工商银行',name:'宇宙星座信用卡',icon:'🌌',annual:'200元/年',annualFee:200,
+   gradient:['#4facfe','#00f2fe'],
+   features:['星座主题设计','积分不过期','消费返现','积分兑换里程'],
+   w:{entertainment:2,points:3,lifestyle:2}},
+  {id:'psb-bilibili',bank:'浦发银行',name:'浦发哔哩哔哩联名卡',icon:'📺',annual:'免年费',annualFee:0,
+   gradient:['#00b4db','#0083b0'],
+   features:['B站大会员权益','视频平台返现','二次元主题设计','积分兑换周边'],
+   w:{entertainment:5,free_annual:4,lifestyle:3}},
+  {id:'abc-music',bank:'农业银行',name:'农行网易云联名卡',icon:'🎵',annual:'免年费',annualFee:0,
+   gradient:['#c94b4b','#4b134f'],
+   features:['网易云音乐会员','音乐消费返现','演唱会优惠','联名限定设计'],
+   w:{entertainment:4,free_annual:4,lifestyle:3}},
+
+  // ── 健康 / 运动
+  {id:'spdb-health',bank:'浦发银行',name:'浦发健康生活卡',icon:'💪',annual:'刷6次免',annualFee:200,
+   gradient:['#56ab2f','#a8e063'],
+   features:['健身消费返现2%','体检优惠套餐','运动APP会员','医疗绿色通道'],
+   w:{health:5,cashback:1,free_annual:1}},
+  {id:'cmb-health',bank:'招商银行',name:'招行健康守护白金卡',icon:'🏥',annual:'800元/年',annualFee:800,
+   gradient:['#11998e','#38ef7d'],
+   features:['医疗消费免手续费','体检年卡权益','健康管理顾问','急救绿色通道'],
+   w:{health:5,premium:2,cashback:1}},
+
+  // ── 高端 / 白金
+  {id:'cmb-gold',bank:'招商银行',name:'招行金葵花信用卡',icon:'👑',annual:'2000元/年',annualFee:2000,
+   gradient:['#b8860b','#ffd700'],
+   features:['私人银行服务','高端商旅礼遇','全球旅行保险','专属礼宾客服'],
+   w:{premium:5,travel:3,airport:3,points:2}},
+  {id:'cib-plat',bank:'兴业银行',name:'兴业白金信用卡',icon:'💎',annual:'1200元/年',annualFee:1200,
+   gradient:['#2c3e50','#e74c3c'],
+   features:['机场贵宾厅6次/年','高端酒店优惠','意外险1000万','积分兑里程'],
+   w:{premium:4,airport:3,travel:3,points:2}},
+  {id:'abc-plat',bank:'农业银行',name:'农行白金信用卡',icon:'🥇',annual:'1200元/年',annualFee:1200,
+   gradient:['#005f73','#0a9396'],
+   features:['机场贵宾厅','高铁权益','高端礼遇','专属客服'],
+   w:{premium:3,airport:3,travel:3}},
+  {id:'pa-plat',bank:'平安银行',name:'平安钻石信用卡',icon:'💠',annual:'3600元/年',annualFee:3600,
+   gradient:['#0f0c29','#302b63','#24243e'],
+   features:['无限次机场贵宾','顶级酒店升级','专属私人管家','全球急难救助'],
+   w:{premium:5,airport:5,travel:4,points:3}},
+
+  // ── 超市 / 生活
+  {id:'boc-super',bank:'中国银行',name:'中银全球超市信用卡',icon:'🛒',annual:'刷6次免',annualFee:200,
+   gradient:['#1565c0','#b92b27'],
+   features:['超市消费返现3%','沃尔玛/大润发专属优惠','积分商城兑换','免年费门槛低'],
+   w:{shopping:4,cashback:3,free_annual:2}},
+  {id:'ccb-life',bank:'建设银行',name:'建行龙卡悠游卡',icon:'🏪',annual:'刷6次免',annualFee:200,
+   gradient:['#0052d4','#65c7f7'],
+   features:['便利店返现2%','超市满减','龙支付积分加速','免年费'],
+   w:{cashback:3,shopping:3,free_annual:3}},
+
+  // ── 无年费优质卡
+  {id:'cmb-young-plat',bank:'招商银行',name:'招行小白金',icon:'🤍',annual:'刷5次免',annualFee:200,
+   gradient:['#e8e8e8','#c9d6df'],
+   features:['消费1%返现','积分不过期','多场景适用','门槛低易办理'],
+   w:{cashback:2,free_annual:4,points:2,lifestyle:3}},
+  {id:'icbc-young',bank:'工商银行',name:'工行牡丹学生卡',icon:'🎓',annual:'免年费',annualFee:0,
+   gradient:['#1a1a2e','#f7971e'],
+   features:['学生专属免年费','零门槛办理','消费积分','小额信贷'],
+   w:{free_annual:5,lifestyle:3,points:1}},
+  {id:'ccb-hua',bank:'建设银行',name:'建行信用卡联名版',icon:'🌷',annual:'刷6次免',annualFee:200,
+   gradient:['#ff758c','#ff7eb3'],
+   features:['消费返现1%','积分不过期','生活场景全覆盖','免年费条件低'],
+   w:{cashback:2,free_annual:3,lifestyle:3,points:2}},
+
+  // ── 医疗/教育
+  {id:'cmb-med',bank:'招商银行',name:'招行医疗白金卡',icon:'🏨',annual:'800元/年',annualFee:800,
+   gradient:['#1d976c','#93f9b9'],
+   features:['医院消费免手续费','体检套餐权益','健康保险权益','急诊绿色通道'],
+   w:{health:5,premium:2,cashback:1}},
+
+  // ── 综合实用
+  {id:'citic-general',bank:'中信银行',name:'中信标准白金卡',icon:'⚡',annual:'刷12次免',annualFee:800,
+   gradient:['#fc4a1a','#f7b733'],
+   features:['消费积分加速','机场贵宾厅2次','全场景适用','分期优惠'],
+   w:{cashback:3,airport:1,points:3,free_annual:1}},
+  {id:'abc-general',bank:'农业银行',name:'农行金穗贷记卡',icon:'🌾',annual:'刷6次免',annualFee:200,
+   gradient:['#005f73','#94d2bd'],
+   features:['农村/城市通用','免年费门槛低','积分不过期','覆盖广泛受理'],
+   w:{free_annual:3,cashback:2,points:2,lifestyle:2}},
+  {id:'hxb-life',bank:'华夏银行',name:'华夏e生活信用卡',icon:'🏙️',annual:'刷6次免',annualFee:200,
+   gradient:['#2980b9','#6dd5fa'],
+   features:['生活场景满减','便利店返现','积分换礼','简单易用'],
+   w:{cashback:3,lifestyle:3,free_annual:2}},
+
+  // ── 旅行综合
+  {id:'citic-travel-plus',bank:'中信银行',name:'中信旅行加白金卡',icon:'🧳',annual:'年费权益覆盖',annualFee:1200,
+   gradient:['#2193b0','#6dd5ed'],
+   features:['机场贵宾厅12次','高铁贵宾室','全球紧急救援','旅行意外险'],
+   w:{travel:5,airport:4,premium:2,points:2}},
+  {id:'spdb-travel',bank:'浦发银行',name:'浦发环球旅行白金卡',icon:'🌐',annual:'1200元/年',annualFee:1200,
+   gradient:['#1a1a2e','#3a7bd5'],
+   features:['机场贵宾厅不限次','全球酒店积分','航班延误险','紧急医疗援助'],
+   w:{travel:5,airport:4,premium:2,overseas:2}},
+];
+
+/* ═══════════════════════════
+   QUESTIONS  (10题，漏斗式从大到小)
+   type: swipe | choice | multi | slider
+═══════════════════════════ */
+const QS = [
+  // Q1：大方向 — 你最在意什么
   {
-    id: 'cmblife', bank: '招商银行', name: 'YOUNG卡 (青春版)',
-    tagline: '年轻人的第一张信用卡',
-    annual: '永久免年费', annualFee: 0,
-    gradient: ['#667eea','#764ba2'], icon: '🎬',
-    features: ['看电影享折扣','积分可换礼品','零门槛办理','网红联名款'],
-    weights: { entertainment:3, free_annual:3, lifestyle:2, points:1 },
+    id:'q1', type:'choice', emoji:'🎯',
+    cat:'第一步', catColor:'#3b82f6',
+    q:'选信用卡，你最在乎哪一点？',
+    detail:'选一个最重要的，帮助我们快速定方向',
+    choices:[
+      {ico:'💰', label:'省钱返现', tag:'cashback', desc:'日常消费有返现、折扣'},
+      {ico:'✈️', label:'出行权益', tag:'travel',   desc:'机场贵宾、里程、酒店礼遇'},
+      {ico:'🛍️', label:'购物优惠', tag:'shopping', desc:'网购、超市、餐饮折扣'},
+      {ico:'👑', label:'高端身份', tag:'premium',  desc:'顶级权益、专属服务、彰显品位'},
+    ]
   },
+  // Q2：主要消费场景 — 多选
   {
-    id: 'bocshopping', bank: '中国银行', name: '长城环球通信用卡',
-    tagline: '购物返现首选',
-    annual: '刷满减免', annualFee: 180,
-    gradient: ['#f093fb','#f5576c'], icon: '🛍️',
-    features: ['海外购物1%返现','双币结算','机场贵宾厅','全球商家优惠'],
-    weights: { shopping:3, overseas:3, travel:2 },
+    id:'q2', type:'multi', emoji:'🗂️',
+    cat:'消费场景', catColor:'#a855f7',
+    q:'你日常主要在哪些地方花钱？',
+    detail:'可以多选，帮我们了解你的消费结构',
+    choices:[
+      {ico:'🍜', label:'餐饮外卖', tag:'dining'},
+      {ico:'🛒', label:'网购电商', tag:'shopping'},
+      {ico:'✈️', label:'出差/旅行', tag:'travel'},
+      {ico:'🚗', label:'开车加油', tag:'car'},
+      {ico:'🌍', label:'境外消费', tag:'overseas'},
+      {ico:'🎬', label:'娱乐休闲', tag:'entertainment'},
+      {ico:'💪', label:'健身运动', tag:'health'},
+      {ico:'🏥', label:'医疗健康', tag:'health'},
+    ]
   },
+  // Q3：年费接受度 — slider
   {
-    id: 'cmbdining', bank: '招商银行', name: '美食GO联名卡',
-    tagline: '吃货必备，餐饮大额返现',
-    annual: '刷6次免年费', annualFee: 200,
-    gradient: ['#fa709a','#fee140'], icon: '🍜',
-    features: ['餐饮消费3%返现','美团/饿了么优惠','米其林折扣','每月餐饮券'],
-    weights: { dining:4, cashback:2, free_annual:1 },
+    id:'q3', type:'slider', emoji:'💳',
+    cat:'年费预算', catColor:'#22c55e',
+    q:'你能接受的年费上限是多少？',
+    detail:'拖动选择，超出年费的卡会被过滤掉',
+    min:0, max:3600, step:200,
+    defaultVal:600,
+    labels:['免年费','600','1200','3600+'],
+    formatVal: v => v === 0 ? '只要免年费' : v >= 3600 ? '3600元以上都行' : `${v}元/年以内`,
+    tag:'annualFee'
   },
+  // Q4：出行频率 — choice
   {
-    id: 'pingantravel', bank: '平安银行', name: '平安旅行白金卡',
-    tagline: '商旅达人专属权益',
-    annual: '1200元/年', annualFee: 1200,
-    gradient: ['#0f2027','#2c5364'], icon: '✈️',
-    features: ['无限次机场贵宾厅','高铁贵宾候车室','里程1:1兑换','全球酒店升级'],
-    weights: { travel:4, airport:4, points:2, premium:2 },
+    id:'q4', type:'choice', emoji:'✈️',
+    cat:'出行频率', catColor:'#06b6d4',
+    q:'你一年大概坐多少次飞机/高铁？',
+    detail:'帮我们判断出行权益对你的价值',
+    choices:[
+      {ico:'🏠', label:'基本不出行', tag:'no_travel', desc:'几乎不坐飞机高铁'},
+      {ico:'🚝', label:'偶尔（3次以下）', tag:'light_travel', desc:'一年少于3次'},
+      {ico:'✈️', label:'较多（3-10次）', tag:'mid_travel', desc:'经常出差或旅游'},
+      {ico:'🛫', label:'频繁（10次+）', tag:'heavy_travel', desc:'高频商旅人士'},
+    ]
   },
+  // Q5：餐饮频率 — swipe
   {
-    id: 'cmcgas', bank: '中信银行', name: '中信车主信用卡',
-    tagline: '加油返现，驾车必备',
-    annual: '刷6次免年费', annualFee: 200,
-    gradient: ['#f7971e','#ffd200'], icon: '🚗',
-    features: ['加油返现3%','停车场折扣','ETC绑定优惠','汽车保养折扣'],
-    weights: { car:5, cashback:2, free_annual:1 },
+    id:'q5', type:'swipe', emoji:'🍜',
+    cat:'餐饮习惯', catColor:'#f97316',
+    q:'我每周点外卖或在外就餐超过 5 次',
+    detail:'餐饮返现是许多人最大的省钱来源之一',
+    tag:'dining'
   },
+  // Q6：购物方式 — choice
   {
-    id: 'spdbhealth', bank: '浦发银行', name: '健康生活信用卡',
-    tagline: '运动健康，绿色生活',
-    annual: '刷6次免年费', annualFee: 200,
-    gradient: ['#56ab2f','#a8e063'], icon: '💪',
-    features: ['健身房消费返现2%','体检优惠套餐','运动APP会员','医疗绿色通道'],
-    weights: { health:5, cashback:1, free_annual:1 },
+    id:'q6', type:'choice', emoji:'🛍️',
+    cat:'购物偏好', catColor:'#ec4899',
+    q:'你主要在哪里购物？',
+    detail:'不同平台联名卡权益差异大',
+    choices:[
+      {ico:'🟠', label:'主要用淘宝/天猫', tag:'ali_shop', desc:'阿里系电商为主'},
+      {ico:'🔴', label:'主要用京东', tag:'jd_shop', desc:'京东自营为主'},
+      {ico:'🛒', label:'线下超市为主', tag:'offline_shop', desc:'大润发/沃尔玛/盒马'},
+      {ico:'📦', label:'都有，比较分散', tag:'all_shop', desc:'多平台混用'},
+    ]
   },
+  // Q7：是否开车 — swipe
   {
-    id: 'boccashback', bank: '交通银行', name: '太平洋返现白金卡',
-    tagline: '高额返现，全场通吃',
-    annual: '600元/年', annualFee: 600,
-    gradient: ['#1a1a2e','#0f3460'], icon: '💰',
-    features: ['超市/便利店2%返现','网购1.5%返现','加油1%返现','无上限返现'],
-    weights: { cashback:5, shopping:2, car:1 },
+    id:'q7', type:'swipe', emoji:'🚗',
+    cat:'用车习惯', catColor:'#f59e0b',
+    q:'我有私家车，每月加油支出超过 400 元',
+    detail:'车主卡的加油返现能显著降低用车成本',
+    tag:'car'
   },
+  // Q8：境外消费 — swipe
   {
-    id: 'cmbplatinum', bank: '招商银行', name: '全币种国际信用卡',
-    tagline: '出境游神卡，零手续费',
-    annual: '360元/年', annualFee: 360,
-    gradient: ['#c94b4b','#4b134f'], icon: '🌍',
-    features: ['境外消费0手续费','汇率实时最优','境外ATM取款','全球退税服务'],
-    weights: { overseas:5, travel:3, shopping:1 },
+    id:'q8', type:'swipe', emoji:'🌍',
+    cat:'境外消费', catColor:'#10b981',
+    q:'我每年有出境旅行或境外网购的需求',
+    detail:'境外消费手续费通常1.5%-3%，专属卡可免',
+    tag:'overseas'
   },
+  // Q9：积分偏好 — swipe
   {
-    id: 'icbclux', bank: '工商银行', name: '融e购联名卡',
-    tagline: '电商购物专属返现',
-    annual: '永久免年费', annualFee: 0,
-    gradient: ['#e96c19','#f5a623'], icon: '📦',
-    features: ['京东/淘宝返现2%','双11最高10%','免息分期12期','免年费'],
-    weights: { shopping:5, cashback:2, free_annual:3 },
+    id:'q9', type:'swipe', emoji:'⭐',
+    cat:'积分偏好', catColor:'#eab308',
+    q:'我愿意花时间管理积分，用来换机票或礼品',
+    detail:'积分玩法有回报，但需要投入一定时间精力',
+    tag:'points'
   },
+  // Q10：年龄/身份 — choice
   {
-    id: 'cmblux', bank: '招商银行', name: '招行金葵花信用卡',
-    tagline: '高端财富管理客户专属',
-    annual: '2000元/年', annualFee: 2000,
-    gradient: ['#b8860b','#ffd700'], icon: '👑',
-    features: ['私人银行服务','高端商旅礼遇','全球旅行保险','专属客服'],
-    weights: { premium:5, travel:2, airport:2, points:2 },
-  },
-  {
-    id: 'cibpoints', bank: '光大银行', name: '阳光积分信用卡',
-    tagline: '积分永不过期，兑换超值',
-    annual: '刷6次免年费', annualFee: 200,
-    gradient: ['#fd746c','#ff9068'], icon: '🎁',
-    features: ['积分永久有效','积分兑换商城','生日积分翻倍','账单分期无手续费'],
-    weights: { points:5, free_annual:2, cashback:1 },
-  },
-  {
-    id: 'icbcuniverse', bank: '工商银行', name: '宇宙星座信用卡',
-    tagline: '高颜值 · 十二星座主题',
-    annual: '200元/年', annualFee: 200,
-    gradient: ['#4facfe','#00f2fe'], icon: '⭐',
-    features: ['星座主题设计','积分不过期','网红打卡赠礼','积分兑换里程'],
-    weights: { entertainment:2, points:3, cashback:1 },
+    id:'q10', type:'choice', emoji:'👤',
+    cat:'你的身份', catColor:'#6366f1',
+    q:'最后，你大概是哪类用户？',
+    detail:'帮我们做最后的精准匹配',
+    choices:[
+      {ico:'🎓', label:'学生 / 刚参加工作', tag:'young', desc:'追求免年费、实用'},
+      {ico:'💼', label:'职场白领', tag:'worker', desc:'通勤+餐饮+偶尔出行'},
+      {ico:'✈️', label:'商务差旅人士', tag:'biz', desc:'高频出行，重视权益'},
+      {ico:'👨‍👩‍👧', label:'家庭用户', tag:'family', desc:'超市、医疗、日常消费为主'},
+    ]
   },
 ];
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════
    STATE
-═══════════════════════════════════════ */
+═══════════════════════════ */
 let cur = 0;
-let answers = {};   // tag -> true/false
+let profile = {};   // tag -> value
 let history = [];
+let multiSel = [];
 
-/* ═══════════════════════════════════════
-   INIT
-═══════════════════════════════════════ */
-function startQuiz() {
-  document.getElementById('stage-intro').style.display = 'none';
-  const sw = document.getElementById('stage-swipe');
-  sw.style.display = 'flex';
-  renderStack();
+/* ═══════════════════════════
+   ENTRY
+═══════════════════════════ */
+function startQuiz(){
+  document.getElementById('s-intro').style.display='none';
+  document.getElementById('s-quiz').style.display='flex';
+  render();
 }
 
-/* ═══════════════════════════════════════
-   RENDER
-═══════════════════════════════════════ */
-function renderStack() {
-  const stack = document.getElementById('card-stack');
-  stack.innerHTML = '';
+/* ═══════════════════════════
+   RENDER CURRENT QUESTION
+═══════════════════════════ */
+function render(){
   updateProgress();
+  const q = QS[cur];
+  const stack = document.getElementById('stack');
+  const actRow = document.getElementById('act-row');
+  const actLab = document.getElementById('act-labels');
+  const swHint = document.getElementById('sw-hint');
 
-  if (cur >= QUESTIONS.length) { showResult(); return; }
+  stack.innerHTML='';
+
+  if(cur>=QS.length){ showResult(); return; }
 
   // back cards
-  [2, 1].forEach(offset => {
-    const idx = cur + offset;
-    if (idx < QUESTIONS.length) {
-      const q = QUESTIONS[idx];
-      const back = document.createElement('div');
-      back.className = `q-card-back q-card-back-${offset}`;
-      back.style.background = q.color + '22';
-      back.style.borderTop = `6px solid ${q.color}55`;
-      stack.appendChild(back);
+  [2,1].forEach(o=>{
+    if(cur+o<QS.length){
+      const b=document.createElement('div');
+      b.className=`back-card back${o}`;
+      b.style.background=QS[cur+o].catColor+'22';
+      stack.appendChild(b);
     }
   });
 
-  // active card
-  const q = QUESTIONS[cur];
-  const el = document.createElement('div');
-  el.className = 'q-card';
-  el.dataset.idx = cur;
+  const card = document.createElement('div');
+  card.className='q-card';
 
-  el.innerHTML = `
-    <div class="qc-band" style="background:${q.color}"></div>
+  // dynamic height based on type
+  const heights={swipe:370,choice:420,multi:430,slider:360};
+  card.style.height=(heights[q.type]||380)+'px';
+
+  let bodyHTML='';
+
+  if(q.type==='swipe'){
+    bodyHTML=`
+      <div class="qc-swipe-foot">
+        <span style="color:#ef4444">← 不符合我</span>
+        <span style="color:#22c55e">符合我 →</span>
+      </div>`;
+    actRow.classList.remove('hide');
+    actLab.classList.remove('hide');
+    swHint.classList.remove('hide');
+  } else {
+    actRow.classList.add('hide');
+    actLab.classList.add('hide');
+    swHint.classList.add('hide');
+  }
+
+  if(q.type==='choice'){
+    bodyHTML=`<div class="qc-choices" id="choices-wrap">
+      ${q.choices.map((c,i)=>`
+        <button class="choice-btn" onclick="selectChoice(${i},'${c.tag}')">
+          <span class="cb-ico">${c.ico}</span>
+          <div><div style="font-size:14px;font-weight:700">${c.label}</div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:1px">${c.desc}</div></div>
+        </button>`).join('')}
+    </div>`;
+  }
+
+  if(q.type==='multi'){
+    multiSel=[];
+    bodyHTML=`<div class="qc-multi" id="multi-wrap">
+      ${q.choices.map((c,i)=>`
+        <button class="multi-btn" id="mb-${i}" onclick="toggleMulti(${i},'${c.tag}')">
+          ${c.ico} ${c.label}
+        </button>`).join('')}
+    </div>
+    <button class="multi-next" onclick="nextMulti()">确认，下一题 →</button>`;
+  }
+
+  if(q.type==='slider'){
+    const v=profile[q.tag+'_val']||q.defaultVal;
+    bodyHTML=`<div class="qc-slider-wrap">
+      <div class="slider-val" id="sliderVal">${q.formatVal(v)}</div>
+      <div class="slider-labels">
+        ${q.labels.map(l=>`<span>${l}</span>`).join('')}
+      </div>
+      <input type="range" id="sliderInput"
+        min="${q.min}" max="${q.max}" step="${q.step}" value="${v}"
+        oninput="updateSlider(this.value)">
+      <button class="slider-next" onclick="nextSlider()">确认，下一题 →</button>
+    </div>`;
+  }
+
+  card.innerHTML=`
+    <div class="qc-band" style="background:${q.catColor}"></div>
     <div class="qc-body">
       <div>
-        <span class="qc-category" style="background:${q.color}22;color:${q.color}">
-          ${q.category}
-        </span>
-        <span class="qc-emoji">${q.emoji}</span>
-        <div class="qc-question">${q.question}</div>
+        <span class="qc-cat" style="background:${q.catColor}22;color:${q.catColor}">${q.cat}</span>
+        <span class="qc-em">${q.emoji}</span>
+        <div class="qc-q">${q.q}</div>
         <div class="qc-detail">${q.detail}</div>
       </div>
-      <div class="qc-swipe-hint">
-        <span style="color:${getComputedStyle(document.documentElement).getPropertyValue('--red')}">← 不符合</span>
-        <span style="color:${getComputedStyle(document.documentElement).getPropertyValue('--green')}">符合我 →</span>
-      </div>
+      ${bodyHTML}
     </div>
-    <div class="overlay-yes">符合 ✓</div>
-    <div class="overlay-no">跳过 ✕</div>
+    ${q.type==='swipe'?'<div class="ov-yes">符合 ✓</div><div class="ov-no">不符合 ✕</div>':''}
   `;
 
-  stack.appendChild(el);
-  bindDrag(el);
+  stack.appendChild(card);
+  if(q.type==='swipe') bindDrag(card);
 }
 
-/* ═══════════════════════════════════════
-   DRAG
-═══════════════════════════════════════ */
-function bindDrag(el) {
-  let sx = 0, dx = 0, dragging = false;
-  const yesEl = el.querySelector('.overlay-yes');
-  const noEl  = el.querySelector('.overlay-no');
-
-  function start(x) { sx = x; dragging = true; el.style.transition = 'none'; }
-  function move(x) {
-    if (!dragging) return;
-    dx = x - sx;
-    const rot = dx * 0.07;
-    el.style.transform = `translateX(calc(-50% + ${dx}px)) rotate(${rot}deg)`;
-    const r = Math.min(Math.abs(dx) / 70, 1);
-    yesEl.style.opacity = dx > 0 ? r : 0;
-    noEl.style.opacity  = dx < 0 ? r : 0;
-  }
-  function end() {
-    if (!dragging) return;
-    dragging = false;
-    yesEl.style.opacity = noEl.style.opacity = 0;
-    el.style.transition = 'transform .3s ease, opacity .3s ease';
-    if      (dx >  70) commitSwipe('yes');
-    else if (dx < -70) commitSwipe('no');
-    else el.style.transform = 'translateX(-50%) rotate(0deg)';
-  }
-
-  el.addEventListener('mousedown',  e => start(e.clientX));
-  window.addEventListener('mousemove', e => { if (dragging) move(e.clientX); });
-  window.addEventListener('mouseup',   () => end());
-  el.addEventListener('touchstart', e => start(e.touches[0].clientX), { passive: true });
-  el.addEventListener('touchmove',  e => move(e.touches[0].clientX),  { passive: true });
-  el.addEventListener('touchend',   () => end());
-}
-
-/* ═══════════════════════════════════════
-   SWIPE LOGIC
-═══════════════════════════════════════ */
-function commitSwipe(dir) {
-  const q = QUESTIONS[cur];
-  history.push({ idx: cur, dir, prevAnswer: answers[q.tag] });
-  answers[q.tag] = (dir === 'yes');
-
-  // fly out animation
-  const el = document.querySelector('.q-card');
-  if (el) {
-    el.style.transition = 'transform .35s ease, opacity .35s ease';
-    el.style.transform = dir === 'yes'
-      ? 'translateX(150%) rotate(20deg)'
-      : 'translateX(-150%) rotate(-20deg)';
-    el.style.opacity = '0';
-    setTimeout(() => { cur++; renderStack(); }, 350);
-  }
-}
-
-function swipe(dir) {
-  const el = document.querySelector('.q-card');
-  if (!el) return;
-  commitSwipe(dir);
-}
-
-function undo() {
-  if (history.length === 0) return;
-  const last = history.pop();
-  answers[QUESTIONS[last.idx].tag] = last.prevAnswer;
-  cur = last.idx;
-  renderStack();
-}
-
-/* ═══════════════════════════════════════
-   PROGRESS
-═══════════════════════════════════════ */
-function updateProgress() {
-  const pct = Math.round((cur / QUESTIONS.length) * 100);
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('sw-count').textContent = `${cur + 1} / ${QUESTIONS.length}`;
-}
-
-/* ═══════════════════════════════════════
-   RESULT
-═══════════════════════════════════════ */
-function showResult() {
-  document.getElementById('stage-swipe').style.display = 'none';
-  const rs = document.getElementById('stage-result');
-  rs.style.display = 'flex';
-
-  // score each card
-  const scored = CARDS.map(card => {
-    let score = 0;
-    Object.entries(card.weights || {}).forEach(([tag, w]) => {
-      if (answers[tag] === true) score += w;
-    });
-    // penalty: user wants free annual but card is expensive
-    if (answers['free_annual'] === true && card.annualFee > 500) score -= 3;
-    if (answers['premium'] !== true && card.annualFee > 1000) score -= 2;
-    return { card, score };
-  }).sort((a, b) => b.score - a.score);
-
-  const best = scored[0].card;
-  const runners = scored.slice(1, 4).filter(s => s.score > 0).map(s => s.card);
-
-  // profile tags from YES answers
-  const TAG_LABELS = {
-    dining:'爱吃美食', travel:'商旅出行', shopping:'网购达人',
-    car:'驾车族', overseas:'爱出境游', entertainment:'娱乐生活',
-    health:'运动健康', free_annual:'免年费优先', points:'积分控',
-    airport:'机场贵宾', premium:'高端权益', cashback:'日常返现',
+/* ═══════════════════════════
+   CHOICE HANDLER
+═══════════════════════════ */
+function selectChoice(idx, tag){
+  document.querySelectorAll('.choice-btn').forEach((b,i)=>{
+    b.classList.toggle('selected', i===idx);
+  });
+  const q=QS[cur];
+  // store
+  profile[q.id+'_choice']=tag;
+  // map to scoring tags
+  const map={
+    cashback:{cashback:3}, travel:{travel:3,airport:2}, shopping:{shopping:3}, premium:{premium:3},
+    no_travel:{}, light_travel:{travel:1}, mid_travel:{travel:3}, heavy_travel:{travel:5,airport:4},
+    ali_shop:{shopping:4}, jd_shop:{shopping:4}, offline_shop:{cashback:3,shopping:2}, all_shop:{shopping:2,cashback:2},
+    young:{free_annual:3,lifestyle:2}, worker:{dining:2,cashback:2}, biz:{travel:3,airport:3,premium:2}, family:{cashback:3,health:2},
   };
-  const profile = Object.entries(answers)
-    .filter(([, v]) => v === true)
-    .map(([k]) => TAG_LABELS[k])
-    .filter(Boolean);
+  const w=map[tag]||{};
+  Object.entries(w).forEach(([k,v])=>{ profile[k]=(profile[k]||0)+v; });
 
-  // reason sentence
-  const matchedTags = Object.keys(best.weights || {})
-    .filter(t => answers[t] === true)
-    .map(t => TAG_LABELS[t]).filter(Boolean);
-  const reason = matchedTags.length
-    ? `根据你的回答，你是一位「${profile.slice(0,2).join('·')}」用户。这张卡在${matchedTags.join('、')}方面与你高度匹配。`
-    : '综合你的偏好分析，这张卡是整体权益最均衡的选择。';
+  setTimeout(()=>advance(), 300);
+}
 
-  const gradStr = g => g.length >= 3
-    ? `linear-gradient(135deg,${g[0]},${g[1]},${g[2]})`
-    : `linear-gradient(135deg,${g[0]},${g[1]})`;
+/* ═══════════════════════════
+   MULTI HANDLER
+═══════════════════════════ */
+function toggleMulti(idx,tag){
+  const btn=document.getElementById('mb-'+idx);
+  const already=multiSel.findIndex(x=>x.idx===idx);
+  if(already>=0){
+    multiSel.splice(already,1);
+    btn.classList.remove('selected');
+  } else {
+    multiSel.push({idx,tag});
+    btn.classList.add('selected');
+  }
+}
+function nextMulti(){
+  multiSel.forEach(({tag})=>{ profile[tag]=(profile[tag]||0)+3; });
+  advance();
+}
 
-  rs.innerHTML = `
-    <div class="res-header">
-      <div class="res-emoji">🎉</div>
+/* ═══════════════════════════
+   SLIDER HANDLER
+═══════════════════════════ */
+function updateSlider(v){
+  const q=QS[cur];
+  document.getElementById('sliderVal').textContent=q.formatVal(+v);
+}
+function nextSlider(){
+  const v=+document.getElementById('sliderInput').value;
+  const q=QS[cur];
+  profile[q.tag+'_val']=v;
+  if(v===0) profile['free_annual']=(profile['free_annual']||0)+5;
+  else if(v<=300) profile['free_annual']=(profile['free_annual']||0)+3;
+  advance();
+}
+
+/* ═══════════════════════════
+   SWIPE HANDLER
+═══════════════════════════ */
+function bindDrag(el){
+  let sx=0,dx=0,dr=false;
+  const yEl=el.querySelector('.ov-yes'), nEl=el.querySelector('.ov-no');
+  function s(x){sx=x;dr=true;el.style.transition='none'}
+  function m(x){
+    if(!dr)return; dx=x-sx;
+    el.style.transform=`translateX(calc(-50% + ${dx}px)) rotate(${dx*.07}deg)`;
+    const r=Math.min(Math.abs(dx)/70,1);
+    yEl.style.opacity=dx>0?r:0; nEl.style.opacity=dx<0?r:0;
+  }
+  function e(){
+    if(!dr)return; dr=false;
+    yEl.style.opacity=nEl.style.opacity=0;
+    el.style.transition='transform .32s ease,opacity .32s ease';
+    if(dx>70) commitSwipe('yes',el);
+    else if(dx<-70) commitSwipe('no',el);
+    else el.style.transform='translateX(-50%) rotate(0)';
+  }
+  el.addEventListener('mousedown',ev=>s(ev.clientX));
+  window.addEventListener('mousemove',ev=>{if(dr)m(ev.clientX)});
+  window.addEventListener('mouseup',()=>e());
+  el.addEventListener('touchstart',ev=>s(ev.touches[0].clientX),{passive:true});
+  el.addEventListener('touchmove',ev=>m(ev.touches[0].clientX),{passive:true});
+  el.addEventListener('touchend',()=>e());
+}
+
+function commitSwipe(dir,el){
+  const q=QS[cur];
+  history.push({idx:cur,snap:{...profile}});
+  if(dir==='yes') profile[q.tag]=(profile[q.tag]||0)+4;
+  flyOut(el,dir);
+}
+
+function flyOut(el,dir){
+  el.style.transform=dir==='yes'
+    ?'translateX(150%) rotate(20deg)'
+    :'translateX(-150%) rotate(-20deg)';
+  el.style.opacity='0';
+  setTimeout(()=>advance(),330);
+}
+
+function swipe(dir){
+  const el=document.querySelector('.q-card');
+  if(!el||QS[cur].type!=='swipe')return;
+  commitSwipe(dir,el);
+}
+
+/* ═══════════════════════════
+   ADVANCE / UNDO
+═══════════════════════════ */
+function advance(){
+  cur++;
+  render();
+}
+
+function undo(){
+  if(history.length===0||cur===0)return;
+  const last=history.pop();
+  cur=last.idx;
+  Object.assign(profile,last.snap);
+  // restore profile to snapshot
+  Object.keys(profile).forEach(k=>delete profile[k]);
+  Object.assign(profile,last.snap);
+  render();
+}
+
+function updateProgress(){
+  const pct=Math.round((cur/QS.length)*100);
+  document.getElementById('prog-f').style.width=pct+'%';
+  document.getElementById('q-counter').textContent=`${Math.min(cur+1,QS.length)} / ${QS.length}`;
+}
+
+/* ═══════════════════════════
+   SCORING & RESULT
+═══════════════════════════ */
+function showResult(){
+  document.getElementById('s-quiz').style.display='none';
+  const rs=document.getElementById('s-result');
+  rs.style.display='flex';
+
+  const maxFee = profile['annualFee_val'] ?? 3600;
+
+  const scored = CARDS.map(card=>{
+    let s=0;
+    // filter by annual fee
+    if(card.annualFee > maxFee) return {card, score:-99};
+    Object.entries(card.w||{}).forEach(([tag,w])=>{
+      s += (profile[tag]||0)*w;
+    });
+    return {card,score:s};
+  }).filter(x=>x.score>-99).sort((a,b)=>b.score-a.score);
+
+  const best=scored[0]?.card||CARDS[0];
+  const runners=scored.slice(1,5).filter(x=>x.score>0).map(x=>x.card);
+
+  // profile tags
+  const TAG_LABEL={
+    cashback:'日常返现控', travel:'商旅达人', shopping:'购物党',
+    premium:'高端玩家', dining:'吃货', car:'有车一族',
+    overseas:'出境游爱好者', entertainment:'娱乐达人', health:'运动健身党',
+    points:'积分收集控', free_annual:'免年费优先', airport:'贵宾厅常客',
+  };
+  const ptags=Object.entries(profile)
+    .filter(([k,v])=>TAG_LABEL[k]&&v>=3)
+    .sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([k])=>TAG_LABEL[k]);
+
+  const matchTags=Object.keys(best.w||{}).filter(t=>profile[t]>=2).map(t=>TAG_LABEL[t]).filter(Boolean);
+  const reason = matchTags.length
+    ? `根据你的回答，你是${ptags.slice(0,2).map(t=>`「${t}」`).join('')}用户。这张卡在${matchTags.join('、')}方面与你高度匹配。`
+    : '综合你的消费画像，这张卡整体权益最均衡，适合你的日常使用。';
+
+  const g=c=>c.gradient.length>=3
+    ?`linear-gradient(135deg,${c.gradient[0]},${c.gradient[1]},${c.gradient[2]})`
+    :`linear-gradient(135deg,${c.gradient[0]},${c.gradient[1]})`;
+
+  rs.innerHTML=`
+    <div class="res-top">
+      <div class="res-big">🎉</div>
       <div class="res-title">为你找到了！</div>
-      <div class="res-sub">基于你的 ${QUESTIONS.length} 个消费习惯问题<br>为你匹配出最合适的信用卡</div>
+      <div class="res-sub">从 ${CARDS.length} 张 2025 热门信用卡中<br>为你精准匹配</div>
     </div>
 
-    ${profile.length ? `
+    ${ptags.length?`
     <div class="profile-box">
-      <div class="profile-box-title">📊 你的消费画像</div>
-      <div class="profile-tags">
-        ${profile.map(t => `<span class="profile-tag">${t}</span>`).join('')}
-      </div>
-    </div>` : ''}
+      <div class="pb-title">📊 你的消费画像</div>
+      <div class="pb-tags">${ptags.map(t=>`<span class="pb-tag">${t}</span>`).join('')}</div>
+    </div>`:''}
 
     <div class="top-label">✦ 最佳匹配</div>
 
-    <div class="res-card">
-      <div class="res-card-top" style="background:${gradStr(best.gradient)}">
-        <div class="res-card-icon">${best.icon}</div>
-        <div class="res-card-info">
-          <div class="res-card-bank">${best.bank.toUpperCase()}</div>
-          <div class="res-card-name">${best.name}</div>
+    <div class="r-card">
+      <div class="r-top" style="background:${g(best)}">
+        <div class="r-ico">${best.icon}</div>
+        <div class="r-info">
+          <div class="r-bank">${best.bank.toUpperCase()}</div>
+          <div class="r-name">${best.name}</div>
         </div>
-        <div class="res-match-pill">推荐 #1</div>
+        <div class="r-pill">推荐 #1</div>
       </div>
-      <div class="res-card-body">
-        <div class="res-reason">${reason}</div>
-        <div class="res-features">
-          ${best.features.map(f => `<span class="res-feat">✓ ${f}</span>`).join('')}
-        </div>
-        <div style="margin-top:14px;font-size:13px;color:rgba(255,255,255,.55)">年费：${best.annual}</div>
+      <div class="r-body">
+        <div class="r-reason">${reason}</div>
+        <div class="r-feats">${best.features.map(f=>`<span class="r-feat">✓ ${f}</span>`).join('')}</div>
+        <div class="r-annual">年费：${best.annual}</div>
       </div>
     </div>
 
-    ${runners.length ? `
-    <div class="other-title">其他适合你的卡片</div>
+    ${runners.length?`
+    <div class="sec-title">其他适合你的卡片（${runners.length}张）</div>
     <div class="other-list">
-      ${runners.map((c, i) => `
-        <div class="other-item" style="background:${gradStr(c.gradient)}">
-          <span class="other-icon">${c.icon}</span>
-          <div>
-            <div class="other-bank">${c.bank}</div>
-            <div class="other-name">${c.name}</div>
-          </div>
-          <span class="other-annual">${c.annual}</span>
-        </div>
-      `).join('')}
-    </div>` : ''}
+      ${runners.map(c=>`
+        <div class="other-item" style="background:${g(c)}">
+          <span class="o-ico">${c.icon}</span>
+          <div><div class="o-bank">${c.bank}</div><div class="o-name">${c.name}</div></div>
+          <span class="o-annual">${c.annual}</span>
+        </div>`).join('')}
+    </div>`:''}
 
-    <button class="restart-btn" onclick="restart()">🔄 重新测一次</button>
+    <button class="btn-restart" onclick="restart()">🔄 重新测一次</button>
   `;
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════
    RESTART
-═══════════════════════════════════════ */
-function restart() {
-  cur = 0; answers = {}; history = [];
-  document.getElementById('stage-result').style.display = 'none';
-  document.getElementById('stage-result').innerHTML = '';
-  const sw = document.getElementById('stage-swipe');
-  sw.style.display = 'flex';
-  renderStack();
+═══════════════════════════ */
+function restart(){
+  cur=0; profile={}; history=[]; multiSel=[];
+  document.getElementById('s-result').style.display='none';
+  document.getElementById('s-result').innerHTML='';
+  document.getElementById('act-row').classList.remove('hide');
+  document.getElementById('act-labels').classList.remove('hide');
+  document.getElementById('s-quiz').style.display='flex';
+  render();
 }
 </script>
 </body>
